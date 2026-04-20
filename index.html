@@ -675,6 +675,33 @@
       box-shadow: 0 0 20px rgba(138, 43, 226, 0.1);
     }
 
+    /* Loading state — shown while the sample is being fetched/decoded */
+    .nature-layer.loading {
+      border-color: var(--cyan);
+    }
+    .nature-layer.loading::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      right: 62px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan);
+      animation: nl-loading-pulse 1s ease-in-out infinite;
+    }
+    .nature-layer { position: relative; }
+    @keyframes nl-loading-pulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.85); }
+      50%      { opacity: 1;   transform: scale(1.15); }
+    }
+
+    /* Loading label next to the select */
+    .nature-layer.loading .nature-layer-select {
+      opacity: 0.65;
+    }
+
     .nature-layer-head {
       display: flex;
       align-items: center;
@@ -1351,10 +1378,16 @@ class AudioEngine {
   async play() {
     this.init();
     if (this.ctx.state === 'suspended') await this.ctx.resume();
-    for (const engine of this.engines) {
-      if (engine.enabled) await engine.start(this.ctx, this.masterBus);
-    }
+    // Flip state immediately so the UI responds without waiting for slow decodes.
     this.isPlaying = true;
+    // Start every enabled engine in PARALLEL so a slow sample doesn't block the rest.
+    // One engine's start-failure is isolated — it can't stall or silence the others.
+    const starts = this.engines
+      .filter(e => e.enabled)
+      .map(e => Promise.resolve()
+        .then(() => e.start(this.ctx, this.masterBus))
+        .catch(err => console.warn('[' + e.constructor.name + '] start failed:', err)));
+    return Promise.allSettled(starts);
   }
 
   stop() {
@@ -2328,7 +2361,8 @@ let visualizer = null;
 let lufsInterval = null;
 
 async function play() {
-  await audioEngine.play();
+  // Kick off engine starts (parallel + error-isolated) but DON'T await — flip UI now.
+  const startPromise = audioEngine.play();
   btnPlay.textContent = 'Pause';
   btnPlay.classList.add('playing');
   if (!visualizer) {
@@ -2342,6 +2376,8 @@ async function play() {
     const lufs = visualizer.getLufsApprox();
     lufsEl.textContent = (lufs === -Infinity || isNaN(lufs)) ? '—' : lufs.toFixed(1);
   }, 250);
+  // Let callers await if they want to know when every engine is live (e.g. for tests)
+  return startPromise;
 }
 
 function stop() {
@@ -2774,6 +2810,16 @@ for (const [key, cat] of Object.entries(NATURE_LIBRARY)) {
   });
   natureBody.appendChild(card);
 }
+
+// Poll each nature-layer card's loading state — on while sample is fetching/decoding
+setInterval(() => {
+  for (const [key, layer] of Object.entries(natureLayers)) {
+    const card = document.querySelector(`.nature-layer[data-category="${key}"]`);
+    if (!card) continue;
+    const loading = layer.enabled && !!layer.url && audioEngine.isPlaying && !layer.nodes;
+    card.classList.toggle('loading', loading);
+  }
+}, 150);
 
 // Starfield backdrop — twinkles + slow drift, synced to play state (brighter when playing)
 (function starfield() {

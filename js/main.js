@@ -39,7 +39,8 @@ let visualizer = null;
 let lufsInterval = null;
 
 async function play() {
-  await audioEngine.play();
+  // Kick off engine starts (parallel + error-isolated) but DON'T await — flip UI now.
+  const startPromise = audioEngine.play();
   btnPlay.textContent = 'Pause';
   btnPlay.classList.add('playing');
 

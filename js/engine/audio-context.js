@@ -139,10 +139,16 @@ export class AudioEngine {
   async play() {
     this.init();
     if (this.ctx.state === 'suspended') await this.ctx.resume();
-    for (const engine of this.engines) {
-      if (engine.enabled) await engine.start(this.ctx, this.masterBus);
-    }
+    // Flip state immediately so the UI responds without waiting for slow decodes.
     this.isPlaying = true;
+    // Start every enabled engine in PARALLEL so a slow sample doesn't block the rest.
+    // One engine's start-failure is isolated — it can't stall or silence the others.
+    const starts = this.engines
+      .filter(e => e.enabled)
+      .map(e => Promise.resolve()
+        .then(() => e.start(this.ctx, this.masterBus))
+        .catch(err => console.warn('[' + e.constructor.name + '] start failed:', err)));
+    return Promise.allSettled(starts);
   }
 
   stop() {
