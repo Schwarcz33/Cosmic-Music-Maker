@@ -45,6 +45,25 @@ open http://localhost:3462/
 
 No build step, no npm install, no bundler. Pure Web Audio API + vanilla JavaScript.
 
+### Run permanently on Windows (recommended for personal use)
+
+Cloud deployments (GitHub Pages, Netlify) can host `index.html` but **can't reach local audio files** on your PC. If your Nature Library samples live locally, run Cosmic Music Maker as a permanent background service on your own machine instead:
+
+```cmd
+REM One-time install
+cd tools
+install-cosmic-windows.bat
+```
+
+This creates a **Desktop shortcut** ("Cosmic Music Maker") and — if you opt in — adds it to **Windows Startup** so it's always available at `http://localhost:4862/` from the moment you log in.
+
+Under the hood:
+- `tools/launch-cosmic.vbs` starts a silent Python HTTP server on port 4862 (no visible console window), then opens your default browser at the app URL.
+- `tools/stop-cosmic.bat` stops the server cleanly if you need to.
+- The server uses the project folder as its root, so your `samples/nature/` junction (or real samples folder) is served alongside the app.
+
+**Requirements**: Python 3 on `PATH` (the installer checks and errors out if missing).
+
 ### Repo layout
 
 - **`index.html`** — the canonical, deployable single-file build. CSS and all JavaScript inlined, assets via `assets/`. This is what GitHub Pages serves. Edit this when polishing.
@@ -101,6 +120,10 @@ Cosmic-Music-Maker/
 │   │   └── wav-encoder.js        # AudioBuffer → WAV blob (16 / 24-bit PCM)
 │   └── ui/
 │       └── visualizer.js         # Spectrum bars + LUFS approximation
+├── tools/
+│   ├── launch-cosmic.vbs         # Silent Windows launcher (server + browser)
+│   ├── stop-cosmic.bat           # Kill the server
+│   └── install-cosmic-windows.bat # One-time: desktop shortcut + autostart
 ├── .gitignore
 └── README.md
 ```
