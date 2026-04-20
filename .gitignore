@@ -1,0 +1,22 @@
+# Nature sound samples — user's private stash, not bundled with the repo
+# (samples/nature/ is a Windows junction to an external folder)
+samples/
+*.zip
+
+# Design handoff mockups (separate IP)
+redesign.html
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+desktop.ini
+
+# Build artefacts (none yet — placeholder for future)
+dist/
+build/
+node_modules/

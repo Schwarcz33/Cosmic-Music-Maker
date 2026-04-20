@@ -1,0 +1,2839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Violet Media — Cosmic Music Maker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/jpeg" href="assets/vm-logo.jpeg">
+  <style>
+    /* =========================================================================
+       Violet Media — Cosmic Music Maker
+       Brand: #8A2BE2 violet, Playfair Display + Montserrat, dark aesthetic
+       ========================================================================= */
+
+    :root {
+      /* VM brand primary (locked) */
+      --violet: #8A2BE2;
+      --violet-dim: #5a1c94;
+      --violet-soft: rgba(138, 43, 226, 0.15);
+      --violet-glow: rgba(138, 43, 226, 0.4);
+
+      /* Cosmic accent system */
+      --violet-hot: #B57AFF;      /* highlights / active state */
+      --violet-deep: #3A1A6B;     /* orb depths */
+      --cyan: #7FE3FF;            /* cool accent */
+      --magenta: #E06BFF;         /* warm accent */
+      --gold: #F4D4A1;            /* solfeggio accent */
+
+      /* Deeper ink base — matches redesign */
+      --bg-0: #06030F;
+      --bg-1: #0D0720;
+      --bg-2: #161030;
+      --bg-3: #241538;
+
+      --text-0: #F5F0FF;
+      --text-1: #C8B8E8;
+      --text-2: #8070A0;
+      --border: rgba(138, 43, 226, 0.2);
+      --border-strong: rgba(181, 122, 255, 0.55);
+      --success: #4ade80;
+      --warn: #f59e0b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg-0);
+      color: var(--text-0);
+      font-family: 'Space Grotesk', -apple-system, sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      letter-spacing: 0.005em;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Deep space backdrop — behind all content */
+    .cosmic-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 120vw 80vh at 30% 20%, rgba(138, 43, 226, 0.18) 0%, transparent 55%),
+        radial-gradient(ellipse 90vw 70vh at 75% 85%, rgba(224, 107, 255, 0.10) 0%, transparent 55%),
+        radial-gradient(ellipse 70vw 60vh at 80% 10%, rgba(127, 227, 255, 0.08) 0%, transparent 55%),
+        linear-gradient(180deg, #06030F 0%, #09051A 40%, #06030F 100%);
+    }
+
+    .cosmic-nebula {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.35;
+      background:
+        radial-gradient(ellipse 40vw 20vh at 20% 40%, rgba(181, 122, 255, 0.35) 0%, transparent 60%),
+        radial-gradient(ellipse 30vw 15vh at 70% 60%, rgba(127, 227, 255, 0.22) 0%, transparent 60%);
+      filter: blur(40px);
+      animation: nebula-shimmer 18s ease-in-out infinite;
+    }
+
+    @keyframes nebula-shimmer {
+      0%, 100% { opacity: 0.25; filter: blur(40px); }
+      50%      { opacity: 0.45; filter: blur(32px); }
+    }
+
+    #starfield {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Serif utility — used for display typography */
+    .serif {
+      font-family: 'Cormorant Garamond', serif;
+      letter-spacing: -0.01em;
+    }
+
+    /* HEADER */
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(6, 3, 15, 0.88) 0%, rgba(6, 3, 15, 0.4) 80%, transparent 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    /* Numeric value readouts — monospaced for stability */
+    .control .val,
+    .lufs-display span,
+    .track-meta {
+      font-feature-settings: "tnum";
+    }
+
+    /* Brand cluster — real VM logo + wordmark */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid rgba(181, 122, 255, 0.55);
+      box-shadow:
+        0 0 24px rgba(138, 43, 226, 0.6),
+        inset 0 0 20px rgba(181, 122, 255, 0.25);
+      transition: box-shadow 0.4s, transform 0.4s;
+      flex-shrink: 0;
+    }
+
+    .btn-primary.playing ~ .brand .brand-logo,
+    .brand.playing .brand-logo {
+      animation: logo-breathe 4s ease-in-out infinite;
+    }
+
+    @keyframes logo-breathe {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 24px rgba(138, 43, 226, 0.6), inset 0 0 20px rgba(181, 122, 255, 0.25); }
+      50%      { transform: scale(1.04); box-shadow: 0 0 42px rgba(181, 122, 255, 0.8), inset 0 0 26px rgba(181, 122, 255, 0.4); }
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: 1.65rem;
+      color: var(--text-0);
+      letter-spacing: 0.01em;
+      line-height: 1;
+    }
+
+    .brand-slogan {
+      font-size: 0.62rem;
+      font-weight: 400;
+      color: var(--text-2);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .transport {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* BUTTONS */
+    .btn-primary, .btn-ghost, .preset-btn {
+      font-family: inherit;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      padding: 0.65rem 1.5rem;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--violet);
+      color: white;
+      box-shadow: 0 0 20px var(--violet-glow);
+    }
+
+    .btn-primary:hover {
+      background: #9c3cf0;
+      box-shadow: 0 0 30px var(--violet-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary.playing {
+      background: var(--success);
+      box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-1);
+      border: 1px solid var(--border-strong);
+    }
+
+    .btn-ghost:hover {
+      background: var(--violet-soft);
+      color: var(--text-0);
+    }
+
+    .btn-wide { width: 100%; margin-top: 0.5rem; }
+
+    /* VISUALIZER */
+    .master-meter {
+      background: var(--bg-0);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 4px;
+    }
+
+    #visualizer {
+      display: block;
+      width: 240px;
+      height: 40px;
+    }
+
+    .lufs-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.65rem;
+      color: var(--text-2);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      min-width: 60px;
+    }
+
+    .lufs-display span {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--text-0);
+      font-weight: 600;
+    }
+
+    /* WORKSPACE */
+    .workspace {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 1.25rem;
+      padding: 2rem;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* ENGINE PANELS */
+    .engine-panel {
+      background: linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .engine-panel:has(input[type="checkbox"]:checked) {
+      border-color: var(--border-strong);
+      box-shadow: 0 0 30px rgba(138, 43, 226, 0.15);
+    }
+
+    .engine-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .engine-title h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: 1.25rem;
+      color: var(--text-0);
+      letter-spacing: -0.01em;
+    }
+
+    .engine-hint {
+      display: block;
+      font-size: 0.65rem;
+      color: var(--text-2);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .engine-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* TOGGLE */
+    .engine-toggle {
+      position: relative;
+      cursor: pointer;
+      width: 44px;
+      height: 24px;
+    }
+
+    .engine-toggle input {
+      opacity: 0;
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: all 0.2s;
+    }
+
+    .toggle-track::before {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      background: var(--text-2);
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .engine-toggle input:checked + .toggle-track {
+      background: var(--violet);
+      border-color: var(--violet);
+    }
+
+    .engine-toggle input:checked + .toggle-track::before {
+      left: 23px;
+      background: white;
+    }
+
+    /* CONTROLS */
+    .control {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .control label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.7rem;
+      color: var(--text-1);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .control .val {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--violet);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    /* RANGE INPUT */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--bg-3);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: var(--violet);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--violet-glow);
+      transition: transform 0.1s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: var(--violet);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 10px var(--violet-glow);
+    }
+
+    /* SELECT + TEXT INPUT */
+    select, input[type="text"] {
+      background: var(--bg-0);
+      border: 1px solid var(--border);
+      color: var(--text-0);
+      padding: 0.65rem 0.8rem;
+      border-radius: 2px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, input[type="text"]:focus {
+      border-color: var(--violet);
+    }
+
+    select option {
+      background: var(--bg-1);
+      color: var(--text-0);
+    }
+
+    /* PRESET ROW */
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .preset-btn {
+      flex: 1;
+      min-width: 80px;
+      background: var(--bg-0);
+      color: var(--text-1);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.4rem;
+      font-size: 0.65rem;
+    }
+
+    .preset-btn:hover {
+      background: var(--violet-soft);
+      color: var(--text-0);
+      border-color: var(--border-strong);
+    }
+
+    /* PLACEHOLDERS */
+    .engine-placeholder {
+      opacity: 0.5;
+    }
+
+    .placeholder-body {
+      padding: 2rem 1.5rem;
+      color: var(--text-2);
+      font-size: 0.85rem;
+      font-style: italic;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* EXPORT */
+    .render-progress {
+      margin-top: 1rem;
+    }
+
+    .render-progress.hidden { display: none; }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--bg-0);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--violet-dim), var(--violet));
+      transition: width 0.1s;
+      box-shadow: 0 0 10px var(--violet-glow);
+    }
+
+    .progress-label {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-2);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+
+    /* FOOTER */
+    .app-footer {
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-size: 0.7rem;
+      color: var(--text-2);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border-top: 1px solid var(--border);
+    }
+
+    /* TRACK LOADER */
+    .track-panel {
+      grid-column: 1 / -1;
+      border-color: var(--border-strong);
+    }
+
+    .dropzone {
+      border: 2px dashed var(--border-strong);
+      border-radius: 4px;
+      padding: 2rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg-0);
+      transition: all 0.2s;
+      position: relative;
+      min-height: 90px;
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--violet);
+      background: var(--violet-soft);
+    }
+
+    .dropzone-label {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--text-0);
+      margin-bottom: 0.3rem;
+    }
+
+    .dropzone-hint {
+      font-size: 0.7rem;
+      color: var(--text-2);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .dropzone-loaded { display: flex; flex-direction: column; gap: 0.6rem; }
+    .dropzone-loaded.hidden, .dropzone-empty.hidden { display: none; }
+
+    .track-filename {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      color: var(--violet);
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .track-meta {
+      font-size: 0.7rem;
+      color: var(--text-2);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .track-progress {
+      height: 4px;
+      background: var(--bg-3);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .track-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--violet);
+      transition: width 0.1s linear;
+    }
+
+    .btn-small {
+      align-self: center;
+      padding: 0.4rem 1rem;
+      font-size: 0.65rem;
+    }
+
+    .control-row {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .checkbox-control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--text-1);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    .checkbox-control input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      background: var(--bg-0);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .checkbox-control input[type="checkbox"]:checked {
+      background: var(--violet);
+      border-color: var(--violet);
+    }
+
+    .checkbox-control input[type="checkbox"]:checked::after {
+      content: '✓';
+      position: absolute;
+      top: -1px;
+      left: 2px;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    /* NATURE LIBRARY */
+    .nature-panel {
+      grid-column: 1 / -1;
+    }
+
+    #nature-body {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      padding: 1.25rem;
+    }
+
+    .nature-layer {
+      background: var(--bg-0);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .nature-layer.active {
+      border-color: var(--border-strong);
+      box-shadow: 0 0 20px rgba(138, 43, 226, 0.1);
+    }
+
+    .nature-layer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nature-layer-label {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-0);
+    }
+
+    .nature-layer-select {
+      width: 100%;
+      font-size: 0.8rem;
+    }
+
+    .nature-layer-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .nature-layer-row label {
+      font-size: 0.6rem;
+      color: var(--text-2);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .nature-layer-row .val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.75rem;
+      color: var(--violet);
+    }
+
+    /* MASTER PANEL — full width */
+    .master-panel, .export-panel {
+      grid-column: 1 / -1;
+    }
+
+    @media (min-width: 1200px) {
+      .master-panel {
+        grid-column: span 2;
+      }
+      .export-panel {
+        grid-column: span 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="cosmic-backdrop"></div>
+  <div class="cosmic-nebula"></div>
+  <canvas id="starfield"></canvas>
+
+  <header class="app-header">
+    <div class="brand" id="brand">
+      <img class="brand-logo" src="assets/vm-logo.jpeg" alt="Violet Media">
+      <div class="brand-text">
+        <h1>Cosmic Music Maker</h1>
+        <span class="brand-slogan">Violet Media — Quality for the ages</span>
+      </div>
+    </div>
+    <div class="transport">
+      <button id="btn-play" class="btn-primary">Play</button>
+      <button id="btn-stop" class="btn-ghost">Stop</button>
+      <div class="master-meter">
+        <canvas id="visualizer" width="240" height="40"></canvas>
+      </div>
+      <div class="lufs-display">
+        <label>LUFS</label>
+        <span id="lufs-value">—</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace">
+
+    <!-- TRACK LOADER — upload your generated music and layer studio elements on top -->
+    <section class="engine-panel track-panel" data-engine="track">
+      <header class="engine-header">
+        <div class="engine-title">
+          <h2>Track</h2>
+          <span class="engine-hint">Your audio — studio sounds layer on top</span>
+        </div>
+        <label class="engine-toggle">
+          <input type="checkbox" id="track-enabled">
+          <span class="toggle-track"></span>
+        </label>
+      </header>
+      <div class="engine-body">
+        <div id="track-dropzone" class="dropzone">
+          <input type="file" id="track-file" accept="audio/*" hidden>
+          <div class="dropzone-empty">
+            <p class="dropzone-label">Drop audio file here</p>
+            <p class="dropzone-hint">WAV · MP3 · FLAC · OGG — or click to browse</p>
+          </div>
+          <div class="dropzone-loaded hidden">
+            <p class="track-filename" id="track-filename">—</p>
+            <p class="track-meta" id="track-meta">—</p>
+            <div class="track-progress">
+              <div class="track-progress-fill" id="track-progress-fill"></div>
+            </div>
+            <button class="btn-ghost btn-small" id="btn-track-clear">Clear</button>
+          </div>
+        </div>
+        <div class="control">
+          <label>Volume <span class="val" id="track-vol-val">−6 dB</span></label>
+          <input type="range" id="track-vol" min="-60" max="6" value="-6" step="0.5">
+        </div>
+        <div class="control">
+          <label>Low Cut <span class="val" id="track-hpf-val">20 Hz</span></label>
+          <input type="range" id="track-hpf" min="20" max="2000" value="20" step="1">
+        </div>
+        <div class="control">
+          <label>High Cut <span class="val" id="track-lpf-val">22 kHz</span></label>
+          <input type="range" id="track-lpf" min="500" max="22000" value="22000" step="10">
+        </div>
+        <div class="control-row">
+          <label class="checkbox-control">
+            <input type="checkbox" id="track-loop" checked>
+            <span>Loop</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- BINAURAL BEATS ENGINE -->
+    <section class="engine-panel" data-engine="binaural">
+      <header class="engine-header">
+        <div class="engine-title">
+          <h2>Binaural Beats</h2>
+          <span class="engine-hint">Headphones required</span>
+        </div>
+        <label class="engine-toggle">
+          <input type="checkbox" id="binaural-enabled">
+          <span class="toggle-track"></span>
+        </label>
+      </header>
+      <div class="engine-body">
+        <div class="control">
+          <label>Carrier <span class="val" id="bin-carrier-val">200 Hz</span></label>
+          <input type="range" id="bin-carrier" min="40" max="500" value="200" step="1">
+        </div>
+        <div class="control">
+          <label>Beat Frequency <span class="val" id="bin-beat-val">8.0 Hz (Alpha)</span></label>
+          <input type="range" id="bin-beat" min="0.5" max="40" value="8" step="0.1">
+        </div>
+        <div class="control">
+          <label>Volume <span class="val" id="bin-vol-val">−12 dB</span></label>
+          <input type="range" id="bin-vol" min="-60" max="0" value="-12" step="0.5">
+        </div>
+        <div class="preset-row">
+          <button class="preset-btn" data-beat="2">Delta 2 Hz</button>
+          <button class="preset-btn" data-beat="6">Theta 6 Hz</button>
+          <button class="preset-btn" data-beat="10">Alpha 10 Hz</button>
+          <button class="preset-btn" data-beat="20">Beta 20 Hz</button>
+          <button class="preset-btn" data-beat="40">Gamma 40 Hz</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SOLFEGGIO ENGINE -->
+    <section class="engine-panel" data-engine="solfeggio">
+      <header class="engine-header">
+        <div class="engine-title">
+          <h2>Solfeggio</h2>
+          <span class="engine-hint">Healing frequencies</span>
+        </div>
+        <label class="engine-toggle">
+          <input type="checkbox" id="solf-enabled">
+          <span class="toggle-track"></span>
+        </label>
+      </header>
+      <div class="engine-body">
+        <div class="control">
+          <label>Frequency</label>
+          <select id="solf-freq">
+            <option value="174">174 Hz — Foundation</option>
+            <option value="285">285 Hz — Regeneration</option>
+            <option value="396">396 Hz — Liberation</option>
+            <option value="417">417 Hz — Change</option>
+            <option value="528" selected>528 Hz — Love / DNA Repair</option>
+            <option value="639">639 Hz — Connection</option>
+            <option value="741">741 Hz — Expression</option>
+            <option value="852">852 Hz — Intuition</option>
+            <option value="963">963 Hz — Awakening</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Harmonic Stack</label>
+          <select id="solf-harmonics">
+            <option value="pure">Pure tone</option>
+            <option value="octave" selected>+ Octave</option>
+            <option value="fifth">+ Octave + 5th</option>
+            <option value="rich">Full harmonic stack</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Breath LFO <span class="val" id="solf-lfo-val">0.1 Hz</span></label>
+          <input type="range" id="solf-lfo" min="0" max="0.5" value="0.1" step="0.01">
+        </div>
+        <div class="control">
+          <label>Reverb Tail <span class="val" id="solf-rev-val">60%</span></label>
+          <input type="range" id="solf-rev" min="0" max="100" value="60" step="1">
+        </div>
+        <div class="control">
+          <label>Volume <span class="val" id="solf-vol-val">−10 dB</span></label>
+          <input type="range" id="solf-vol" min="-60" max="0" value="-10" step="0.5">
+        </div>
+      </div>
+    </section>
+
+    <!-- RAIN ENGINE -->
+    <section class="engine-panel" data-engine="rain">
+      <header class="engine-header">
+        <div class="engine-title">
+          <h2>Rain</h2>
+          <span class="engine-hint">Synthesized — drizzle to downpour</span>
+        </div>
+        <label class="engine-toggle">
+          <input type="checkbox" id="rain-enabled">
+          <span class="toggle-track"></span>
+        </label>
+      </header>
+      <div class="engine-body">
+        <div class="control">
+          <label>Intensity <span class="val" id="rain-int-val">Medium</span></label>
+          <input type="range" id="rain-int" min="0" max="100" value="50" step="1">
+        </div>
+        <div class="control">
+          <label>Shelter <span class="val" id="rain-shelter-val">Open</span></label>
+          <input type="range" id="rain-shelter" min="0" max="100" value="0" step="1">
+        </div>
+        <div class="control">
+          <label>Volume <span class="val" id="rain-vol-val">−14 dB</span></label>
+          <input type="range" id="rain-vol" min="-60" max="0" value="-14" step="0.5">
+        </div>
+        <div class="preset-row">
+          <button class="preset-btn" data-rain-int="15" data-rain-shelter="0">Drizzle</button>
+          <button class="preset-btn" data-rain-int="50" data-rain-shelter="0">Steady</button>
+          <button class="preset-btn" data-rain-int="85" data-rain-shelter="0">Downpour</button>
+          <button class="preset-btn" data-rain-int="70" data-rain-shelter="60">Inside</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- THUNDER ENGINE -->
+    <section class="engine-panel" data-engine="thunder">
+      <header class="engine-header">
+        <div class="engine-title">
+          <h2>Thunder</h2>
+          <span class="engine-hint">Synthesized — 3-layer strikes</span>
+        </div>
+        <label class="engine-toggle">
+          <input type="checkbox" id="thunder-enabled">
+          <span class="toggle-track"></span>
+        </label>
+      </header>
+      <div class="engine-body">
+        <div class="control">
+          <label>Intensity <span class="val" id="thunder-int-val">70%</span></label>
+          <input type="range" id="thunder-int" min="0" max="100" value="70" step="1">
+        </div>
+        <div class="control">
+          <label>Distance <span class="val" id="thunder-dist-val">Mid</span></label>
+          <input type="range" id="thunder-dist" min="0" max="100" value="50" step="1">
+        </div>
+        <div class="control">
+          <label>Strikes per minute <span class="val" id="thunder-freq-val">2.0</span></label>
+          <input type="range" id="thunder-freq" min="0" max="20" value="2" step="0.1">
+        </div>
+        <div class="control">
+          <label>Volume <span class="val" id="thunder-vol-val">−10 dB</span></label>
+          <input type="range" id="thunder-vol" min="-60" max="0" value="-10" step="0.5">
+        </div>
+        <div class="preset-row">
+          <button id="btn-thunder-trigger" class="preset-btn">⚡ Trigger Strike</button>
+          <button class="preset-btn" data-thunder-dist="10" data-thunder-freq="1">Close</button>
+          <button class="preset-btn" data-thunder-dist="90" data-thunder-freq="4">Distant</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- NATURE LIBRARY — built-in sample layers -->
+    <section class="engine-panel nature-panel" data-engine="nature">
+      <header class="engine-header">
+        <div class="engine-title">
+          <h2>Nature Library</h2>
+          <span class="engine-hint">Real recordings — layer any combination</span>
+        </div>
+      </header>
+      <div class="engine-body" id="nature-body">
+        <!-- Populated by script -->
+      </div>
+    </section>
+
+    <!-- GENERATIVE AMBIENT (Phase 4) -->
+    <section class="engine-panel engine-placeholder" data-engine="generative">
+      <header class="engine-header">
+        <div class="engine-title">
+          <h2>Generative Ambient</h2>
+          <span class="engine-hint">Phase 4 — Scale-locked evolving pad</span>
+        </div>
+      </header>
+      <div class="engine-body placeholder-body">
+        <p>Markov-chain note generator. Evolving filter pad. Probabilistic bells. Never repeats.</p>
+      </div>
+    </section>
+
+    <!-- MASTER STUDIO -->
+    <section class="engine-panel master-panel" data-engine="master">
+      <header class="engine-header">
+        <div class="engine-title">
+          <h2>Master</h2>
+          <span class="engine-hint">Global output chain</span>
+        </div>
+      </header>
+      <div class="engine-body">
+        <div class="control">
+          <label>Low Shelf <span class="val" id="eq-low-val">0 dB</span></label>
+          <input type="range" id="eq-low" min="-12" max="12" value="0" step="0.5">
+        </div>
+        <div class="control">
+          <label>Mid Bell <span class="val" id="eq-mid-val">0 dB</span></label>
+          <input type="range" id="eq-mid" min="-12" max="12" value="0" step="0.5">
+        </div>
+        <div class="control">
+          <label>High Shelf <span class="val" id="eq-high-val">0 dB</span></label>
+          <input type="range" id="eq-high" min="-12" max="12" value="0" step="0.5">
+        </div>
+        <div class="control">
+          <label>Stereo Width <span class="val" id="master-width-val">100%</span></label>
+          <input type="range" id="master-width" min="0" max="200" value="100" step="1">
+        </div>
+        <div class="control">
+          <label>Limiter Ceiling <span class="val" id="master-ceil-val">−0.3 dB</span></label>
+          <input type="range" id="master-ceil" min="-6" max="0" value="-0.3" step="0.1">
+        </div>
+        <div class="control">
+          <label>Master Gain <span class="val" id="master-gain-val">0 dB</span></label>
+          <input type="range" id="master-gain" min="-24" max="6" value="0" step="0.5">
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPORT -->
+    <section class="engine-panel export-panel" data-engine="export">
+      <header class="engine-header">
+        <div class="engine-title">
+          <h2>Export</h2>
+          <span class="engine-hint">Offline render to WAV</span>
+        </div>
+      </header>
+      <div class="engine-body">
+        <div class="control">
+          <label>Duration</label>
+          <select id="export-duration">
+            <option value="60">1 minute (test)</option>
+            <option value="300">5 minutes</option>
+            <option value="600" selected>10 minutes</option>
+            <option value="1200">20 minutes</option>
+            <option value="1800">30 minutes</option>
+            <option value="3600">60 minutes</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Format</label>
+          <select id="export-format">
+            <option value="44100-16">44.1 kHz / 16-bit (streaming)</option>
+            <option value="48000-24" selected>48 kHz / 24-bit (master)</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Title</label>
+          <input type="text" id="export-title" placeholder="e.g. Alpha Dreamscape 528Hz">
+        </div>
+        <button id="btn-render" class="btn-primary btn-wide">Render WAV</button>
+        <div id="render-progress" class="render-progress hidden">
+          <div class="progress-bar"><div class="progress-fill"></div></div>
+          <span class="progress-label">Rendering…</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <span>Cosmic Music Maker · single-file build · engines: Track · Binaural · Solfeggio · Rain · Thunder · Nature · Master · Export</span>
+  </footer>
+
+  <script>
+/* =============================================================================
+   Cosmic Music Maker — single-file build
+   All 12 source modules flattened and concatenated in dependency order.
+   No ES imports. Plain <script>. Runs anywhere that serves static files.
+   ============================================================================= */
+
+/* ---------------------------------------------------------------------------
+   [1/9] WAV ENCODER — AudioBuffer → WAV Blob (16-bit & 24-bit PCM)
+   --------------------------------------------------------------------------- */
+function audioBufferToWav(buffer, bitDepth = 24) {
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const length = buffer.length;
+
+  const channels = [];
+  for (let c = 0; c < numChannels; c++) channels.push(buffer.getChannelData(c));
+
+  const bytesPerSample = bitDepth / 8;
+  const blockAlign = numChannels * bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = length * blockAlign;
+  const bufferSize = 44 + dataSize;
+
+  const ab = new ArrayBuffer(bufferSize);
+  const view = new DataView(ab);
+
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bitDepth, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, dataSize, true);
+
+  let offset = 44;
+  if (bitDepth === 16) {
+    for (let i = 0; i < length; i++) {
+      for (let c = 0; c < numChannels; c++) {
+        const sample = Math.max(-1, Math.min(1, channels[c][i]));
+        const int16 = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+        view.setInt16(offset, int16 | 0, true);
+        offset += 2;
+      }
+    }
+  } else if (bitDepth === 24) {
+    for (let i = 0; i < length; i++) {
+      for (let c = 0; c < numChannels; c++) {
+        const sample = Math.max(-1, Math.min(1, channels[c][i]));
+        const int24 = (sample < 0 ? sample * 0x800000 : sample * 0x7FFFFF) | 0;
+        view.setUint8(offset, int24 & 0xFF);
+        view.setUint8(offset + 1, (int24 >> 8) & 0xFF);
+        view.setUint8(offset + 2, (int24 >> 16) & 0xFF);
+        offset += 3;
+      }
+    }
+  } else {
+    throw new Error(`Unsupported bit depth: ${bitDepth}`);
+  }
+
+  return new Blob([ab], { type: 'audio/wav' });
+}
+
+function writeString(view, offset, str) {
+  for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+function safeFilename(str) {
+  return String(str).replace(/[^\w\s.-]/g, '').replace(/\s+/g, '_').slice(0, 80) || 'untitled';
+}
+
+/* ---------------------------------------------------------------------------
+   [2/9] VISUALIZER — spectrum bars + LUFS meter
+   --------------------------------------------------------------------------- */
+class Visualizer {
+  constructor(canvas, analyser) {
+    this.canvas = canvas;
+    this.ctx2d = canvas.getContext('2d');
+    this.analyser = analyser;
+    this.freqData = new Uint8Array(analyser.frequencyBinCount);
+    this.timeData = new Uint8Array(analyser.fftSize);
+    this.running = false;
+    this._resize();
+  }
+
+  _resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = this.canvas.getBoundingClientRect();
+    this.canvas.width = rect.width * dpr;
+    this.canvas.height = rect.height * dpr;
+    this.ctx2d.scale(dpr, dpr);
+  }
+
+  start() { this.running = true; this._loop(); }
+  stop()  { this.running = false; }
+
+  _loop() {
+    if (!this.running) { this._clear(); return; }
+    this.analyser.getByteFrequencyData(this.freqData);
+    this._draw();
+    requestAnimationFrame(() => this._loop());
+  }
+
+  _clear() {
+    const w = this.canvas.width / (window.devicePixelRatio || 1);
+    const h = this.canvas.height / (window.devicePixelRatio || 1);
+    this.ctx2d.fillStyle = '#0a0612';
+    this.ctx2d.fillRect(0, 0, w, h);
+  }
+
+  _draw() {
+    const dpr = window.devicePixelRatio || 1;
+    const w = this.canvas.width / dpr;
+    const h = this.canvas.height / dpr;
+    this.ctx2d.fillStyle = '#0a0612';
+    this.ctx2d.fillRect(0, 0, w, h);
+    const bins = this.freqData.length;
+    const barCount = 48;
+    const barWidth = w / barCount;
+    for (let i = 0; i < barCount; i++) {
+      const t = i / barCount;
+      const binIdx = Math.floor(Math.pow(t, 2) * bins * 0.6);
+      const v = this.freqData[binIdx] / 255;
+      const barHeight = v * h;
+      const grad = this.ctx2d.createLinearGradient(0, h - barHeight, 0, h);
+      grad.addColorStop(0, '#c58af0');
+      grad.addColorStop(1, '#5a1c94');
+      this.ctx2d.fillStyle = grad;
+      this.ctx2d.fillRect(i * barWidth + 1, h - barHeight, barWidth - 2, barHeight);
+    }
+  }
+
+  getLufsApprox() {
+    this.analyser.getByteTimeDomainData(this.timeData);
+    let sum = 0;
+    for (let i = 0; i < this.timeData.length; i++) {
+      const s = (this.timeData[i] - 128) / 128;
+      sum += s * s;
+    }
+    const rms = Math.sqrt(sum / this.timeData.length);
+    if (rms < 1e-5) return -Infinity;
+    return 20 * Math.log10(rms) - 0.691;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   [3/9] AUDIO ENGINE — master context + signal chain + offline render
+   --------------------------------------------------------------------------- */
+class AudioEngine {
+  constructor() {
+    this.ctx = null;
+    this.masterBus = null;
+    this.analyser = null;
+    this.isPlaying = false;
+    this.nodes = {};
+    this.engines = [];
+  }
+
+  init() {
+    if (this.ctx) return;
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)({
+      sampleRate: 48000,
+      latencyHint: 'interactive',
+    });
+    this._buildChain(this.ctx);
+  }
+
+  _buildChain(ctx) {
+    this.masterBus = ctx.createGain();
+    this.masterBus.gain.value = 1.0;
+
+    this.nodes.lowShelf = ctx.createBiquadFilter();
+    this.nodes.lowShelf.type = 'lowshelf';
+    this.nodes.lowShelf.frequency.value = 200;
+    this.nodes.lowShelf.gain.value = 0;
+
+    this.nodes.midBell = ctx.createBiquadFilter();
+    this.nodes.midBell.type = 'peaking';
+    this.nodes.midBell.frequency.value = 1000;
+    this.nodes.midBell.Q.value = 1.0;
+    this.nodes.midBell.gain.value = 0;
+
+    this.nodes.highShelf = ctx.createBiquadFilter();
+    this.nodes.highShelf.type = 'highshelf';
+    this.nodes.highShelf.frequency.value = 5000;
+    this.nodes.highShelf.gain.value = 0;
+
+    this.nodes.widener = this._createStereoWidener(ctx);
+
+    this.nodes.compressor = ctx.createDynamicsCompressor();
+    this.nodes.compressor.threshold.value = -18;
+    this.nodes.compressor.knee.value = 12;
+    this.nodes.compressor.ratio.value = 2.5;
+    this.nodes.compressor.attack.value = 0.02;
+    this.nodes.compressor.release.value = 0.2;
+
+    this.nodes.limiter = ctx.createDynamicsCompressor();
+    this.nodes.limiter.threshold.value = -0.3;
+    this.nodes.limiter.knee.value = 0;
+    this.nodes.limiter.ratio.value = 20;
+    this.nodes.limiter.attack.value = 0.001;
+    this.nodes.limiter.release.value = 0.05;
+
+    this.nodes.masterGain = ctx.createGain();
+    this.nodes.masterGain.gain.value = 1.0;
+
+    this.analyser = ctx.createAnalyser();
+    this.analyser.fftSize = 2048;
+    this.analyser.smoothingTimeConstant = 0.8;
+
+    this.masterBus
+      .connect(this.nodes.lowShelf)
+      .connect(this.nodes.midBell)
+      .connect(this.nodes.highShelf)
+      .connect(this.nodes.widener.input);
+    this.nodes.widener.output
+      .connect(this.nodes.compressor)
+      .connect(this.nodes.limiter)
+      .connect(this.nodes.masterGain)
+      .connect(this.analyser)
+      .connect(ctx.destination);
+  }
+
+  _createStereoWidener(ctx) {
+    const input = ctx.createGain();
+    const output = ctx.createGain();
+    const splitter = ctx.createChannelSplitter(2);
+    const merger = ctx.createChannelMerger(2);
+    const midGainL = ctx.createGain();
+    const midGainR = ctx.createGain();
+    const sideGainL = ctx.createGain();
+    const sideGainR = ctx.createGain();
+    const sideInvert = ctx.createGain();
+    sideInvert.gain.value = -1;
+    input.connect(splitter);
+    splitter.connect(midGainL, 0);
+    splitter.connect(midGainR, 1);
+    splitter.connect(sideGainL, 0);
+    splitter.connect(sideInvert, 1);
+    sideInvert.connect(sideGainR);
+    midGainL.gain.value = 0.5;
+    midGainR.gain.value = 0.5;
+    sideGainL.gain.value = 0.5;
+    sideGainR.gain.value = 0.5;
+    midGainL.connect(merger, 0, 0);
+    sideGainL.connect(merger, 0, 0);
+    midGainR.connect(merger, 0, 1);
+    sideGainR.connect(merger, 0, 1);
+    merger.connect(output);
+    const widener = { input, output };
+    widener.setWidth = (pct) => {
+      const w = pct / 100;
+      sideGainL.gain.value = 0.5 * w;
+      sideGainR.gain.value = 0.5 * w;
+    };
+    return widener;
+  }
+
+  registerEngine(engine) { this.engines.push(engine); }
+
+  async play() {
+    this.init();
+    if (this.ctx.state === 'suspended') await this.ctx.resume();
+    for (const engine of this.engines) {
+      if (engine.enabled) await engine.start(this.ctx, this.masterBus);
+    }
+    this.isPlaying = true;
+  }
+
+  stop() {
+    for (const engine of this.engines) engine.stop();
+    this.isPlaying = false;
+  }
+
+  static db2gain(db) { return Math.pow(10, db / 20); }
+
+  async render(durationSec, sampleRate = 48000, bitDepth = 24, onProgress = null) {
+    const numChannels = 2;
+    const length = Math.ceil(durationSec * sampleRate);
+    const offlineCtx = new OfflineAudioContext(numChannels, length, sampleRate);
+    const offlineEngine = new AudioEngine();
+    offlineEngine.ctx = offlineCtx;
+    offlineEngine._buildChain(offlineCtx);
+    offlineEngine.nodes.lowShelf.gain.value = this.nodes.lowShelf.gain.value;
+    offlineEngine.nodes.midBell.gain.value = this.nodes.midBell.gain.value;
+    offlineEngine.nodes.highShelf.gain.value = this.nodes.highShelf.gain.value;
+    offlineEngine.nodes.limiter.threshold.value = this.nodes.limiter.threshold.value;
+    offlineEngine.nodes.masterGain.gain.value = this.nodes.masterGain.gain.value;
+    if (this.nodes.widener._currentWidth !== undefined) {
+      offlineEngine.nodes.widener.setWidth(this.nodes.widener._currentWidth);
+    }
+    for (const engine of this.engines) {
+      if (engine.enabled) {
+        const offlineClone = engine.cloneForRender(durationSec);
+        await offlineClone.start(offlineCtx, offlineEngine.masterBus);
+      }
+    }
+    let poll = null;
+    if (onProgress) {
+      const startTime = performance.now();
+      poll = setInterval(() => {
+        const elapsed = (performance.now() - startTime) / 1000;
+        const estimate = Math.min(elapsed / (durationSec / 10), 0.95);
+        onProgress(estimate);
+      }, 100);
+    }
+    try {
+      const buffer = await offlineCtx.startRendering();
+      if (poll) clearInterval(poll);
+      if (onProgress) onProgress(1.0);
+      return buffer;
+    } catch (err) {
+      if (poll) clearInterval(poll);
+      throw err;
+    }
+  }
+}
+
+const audioEngine = new AudioEngine();
+
+/* ---------------------------------------------------------------------------
+   [4/9] BINAURAL BEATS — hard-L/R sine pair, brainwave entrainment
+   --------------------------------------------------------------------------- */
+class BinauralEngine {
+  constructor() {
+    this.enabled = false;
+    this.carrier = 200;
+    this.beat = 8;
+    this.volumeDb = -12;
+    this.nodes = null;
+  }
+  setCarrier(hz) {
+    this.carrier = hz;
+    if (this.nodes) {
+      this.nodes.oscL.frequency.setTargetAtTime(hz, this.nodes.ctx.currentTime, 0.05);
+      this.nodes.oscR.frequency.setTargetAtTime(hz + this.beat, this.nodes.ctx.currentTime, 0.05);
+    }
+  }
+  setBeat(hz) {
+    this.beat = hz;
+    if (this.nodes) this.nodes.oscR.frequency.setTargetAtTime(this.carrier + hz, this.nodes.ctx.currentTime, 0.05);
+  }
+  setVolume(db) {
+    this.volumeDb = db;
+    if (this.nodes) this.nodes.gain.gain.setTargetAtTime(AudioEngine.db2gain(db), this.nodes.ctx.currentTime, 0.05);
+  }
+  start(ctx, destination) {
+    if (this.nodes) this.stop();
+    const oscL = ctx.createOscillator();
+    const oscR = ctx.createOscillator();
+    oscL.type = 'sine'; oscR.type = 'sine';
+    oscL.frequency.value = this.carrier;
+    oscR.frequency.value = this.carrier + this.beat;
+    const gainL = ctx.createGain(); const gainR = ctx.createGain();
+    gainL.gain.value = 1; gainR.gain.value = 1;
+    const merger = ctx.createChannelMerger(2);
+    oscL.connect(gainL).connect(merger, 0, 0);
+    oscR.connect(gainR).connect(merger, 0, 1);
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    merger.connect(gain).connect(destination);
+    oscL.start(); oscR.start();
+    const target = AudioEngine.db2gain(this.volumeDb);
+    gain.gain.linearRampToValueAtTime(target, ctx.currentTime + 0.1);
+    this.nodes = { ctx, oscL, oscR, gainL, gainR, merger, gain };
+  }
+  stop() {
+    if (!this.nodes) return;
+    const { ctx, oscL, oscR, gain } = this.nodes;
+    gain.gain.cancelScheduledValues(ctx.currentTime);
+    gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.05);
+    oscL.stop(ctx.currentTime + 0.06);
+    oscR.stop(ctx.currentTime + 0.06);
+    this.nodes = null;
+  }
+  cloneForRender() {
+    const clone = new BinauralEngine();
+    clone.enabled = true;
+    clone.carrier = this.carrier;
+    clone.beat = this.beat;
+    clone.volumeDb = this.volumeDb;
+    return clone;
+  }
+}
+
+function beatBandLabel(hz) {
+  if (hz < 4) return `${hz.toFixed(1)} Hz (Delta)`;
+  if (hz < 8) return `${hz.toFixed(1)} Hz (Theta)`;
+  if (hz < 13) return `${hz.toFixed(1)} Hz (Alpha)`;
+  if (hz < 30) return `${hz.toFixed(1)} Hz (Beta)`;
+  return `${hz.toFixed(1)} Hz (Gamma)`;
+}
+
+/* ---------------------------------------------------------------------------
+   [5/9] SOLFEGGIO — fundamental + harmonic stack + breath LFO + convolution reverb
+   --------------------------------------------------------------------------- */
+class SolfeggioEngine {
+  constructor() {
+    this.enabled = false;
+    this.frequency = 528;
+    this.harmonics = 'octave';
+    this.lfoRate = 0.1;
+    this.reverbMix = 0.6;
+    this.volumeDb = -10;
+    this.nodes = null;
+  }
+  setFrequency(hz) { this.frequency = hz; if (this.nodes) this._rebuildOscillators(); }
+  setHarmonics(mode) { this.harmonics = mode; if (this.nodes) this._rebuildOscillators(); }
+  setLfoRate(hz) {
+    this.lfoRate = hz;
+    if (this.nodes) this.nodes.lfo.frequency.setTargetAtTime(hz, this.nodes.ctx.currentTime, 0.1);
+  }
+  setReverbMix(mix) {
+    this.reverbMix = mix;
+    if (this.nodes) {
+      this.nodes.wetGain.gain.setTargetAtTime(mix, this.nodes.ctx.currentTime, 0.1);
+      this.nodes.dryGain.gain.setTargetAtTime(1 - mix * 0.5, this.nodes.ctx.currentTime, 0.1);
+    }
+  }
+  setVolume(db) {
+    this.volumeDb = db;
+    if (this.nodes) this.nodes.gain.gain.setTargetAtTime(AudioEngine.db2gain(db), this.nodes.ctx.currentTime, 0.05);
+  }
+  _harmonicRatios() {
+    switch (this.harmonics) {
+      case 'pure':   return [1];
+      case 'octave': return [1, 2];
+      case 'fifth':  return [1, 2, 3];
+      case 'rich':   return [1, 2, 3, 4, 5];
+      default:       return [1];
+    }
+  }
+  _harmonicGains() {
+    const ratios = this._harmonicRatios();
+    return ratios.map((r, i) => 1 / (i + 1));
+  }
+  _rebuildOscillators() {
+    if (!this.nodes) return;
+    const { ctx, oscs, mixer } = this.nodes;
+    oscs.forEach((o) => {
+      try { o.osc.stop(); } catch (e) {}
+      try { o.osc.disconnect(); o.gain.disconnect(); } catch (e) {}
+    });
+    this.nodes.oscs = [];
+    const ratios = this._harmonicRatios();
+    const gains = this._harmonicGains();
+    ratios.forEach((r, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = this.frequency * r;
+      osc.detune.value = i > 0 ? (Math.random() - 0.5) * 6 : 0;
+      const oscGain = ctx.createGain();
+      oscGain.gain.value = gains[i];
+      osc.connect(oscGain).connect(mixer);
+      osc.start();
+      this.nodes.oscs.push({ osc, gain: oscGain });
+    });
+  }
+  _makeReverbIR(ctx, seconds = 4) {
+    const rate = ctx.sampleRate;
+    const len = Math.floor(seconds * rate);
+    const buf = ctx.createBuffer(2, len, rate);
+    for (let ch = 0; ch < 2; ch++) {
+      const data = buf.getChannelData(ch);
+      for (let i = 0; i < len; i++) {
+        const t = i / len;
+        const noise = (Math.random() * 2 - 1);
+        data[i] = noise * Math.pow(1 - t, 2.5);
+      }
+    }
+    return buf;
+  }
+  start(ctx, destination) {
+    if (this.nodes) this.stop();
+    const mixer = ctx.createGain(); mixer.gain.value = 1.0;
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = this.lfoRate;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.25;
+    lfo.connect(lfoGain);
+    const amMod = ctx.createGain();
+    amMod.gain.value = 0.75;
+    lfoGain.connect(amMod.gain);
+    mixer.connect(amMod);
+    const convolver = ctx.createConvolver();
+    convolver.buffer = this._makeReverbIR(ctx, 4);
+    const dryGain = ctx.createGain();
+    const wetGain = ctx.createGain();
+    dryGain.gain.value = 1 - this.reverbMix * 0.5;
+    wetGain.gain.value = this.reverbMix;
+    amMod.connect(dryGain);
+    amMod.connect(convolver).connect(wetGain);
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    dryGain.connect(gain);
+    wetGain.connect(gain);
+    gain.connect(destination);
+    lfo.start();
+    const target = AudioEngine.db2gain(this.volumeDb);
+    gain.gain.linearRampToValueAtTime(target, ctx.currentTime + 0.2);
+    this.nodes = { ctx, oscs: [], mixer, lfo, lfoGain, amMod, convolver, dryGain, wetGain, gain };
+    this._rebuildOscillators();
+  }
+  stop() {
+    if (!this.nodes) return;
+    const { ctx, oscs, lfo, gain } = this.nodes;
+    gain.gain.cancelScheduledValues(ctx.currentTime);
+    gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.1);
+    oscs.forEach((o) => { try { o.osc.stop(ctx.currentTime + 0.12); } catch (e) {} });
+    try { lfo.stop(ctx.currentTime + 0.12); } catch (e) {}
+    this.nodes = null;
+  }
+  cloneForRender() {
+    const clone = new SolfeggioEngine();
+    clone.enabled = true;
+    clone.frequency = this.frequency;
+    clone.harmonics = this.harmonics;
+    clone.lfoRate = this.lfoRate;
+    clone.reverbMix = this.reverbMix;
+    clone.volumeDb = this.volumeDb;
+    return clone;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   [6/9] RAIN — pink noise bed + Poisson droplet scheduler
+   --------------------------------------------------------------------------- */
+class RainEngine {
+  constructor() {
+    this.enabled = false;
+    this.intensity = 0.5;
+    this.shelter = 0;
+    this.volumeDb = -14;
+    this.nodes = null;
+    this._dropTimer = null;
+    this._renderDuration = null;
+  }
+  setIntensity(v) { this.intensity = v; if (this.nodes) this._applyIntensity(); }
+  setShelter(v) { this.shelter = v; if (this.nodes) this._applyShelter(); }
+  setVolume(db) {
+    this.volumeDb = db;
+    if (this.nodes) this.nodes.gain.gain.setTargetAtTime(AudioEngine.db2gain(db), this.nodes.ctx.currentTime, 0.1);
+  }
+  _applyIntensity() {
+    const { bedGain, bedBp } = this.nodes;
+    const bedLevel = 0.1 + this.intensity * 0.5;
+    const cutoff = 1500 + this.intensity * 5000;
+    bedGain.gain.setTargetAtTime(bedLevel, this.nodes.ctx.currentTime, 0.2);
+    bedBp.frequency.setTargetAtTime(cutoff, this.nodes.ctx.currentTime, 0.2);
+  }
+  _applyShelter() {
+    const { shelterLpf } = this.nodes;
+    const cutoff = 22000 - this.shelter * 20000;
+    shelterLpf.frequency.setTargetAtTime(cutoff, this.nodes.ctx.currentTime, 0.3);
+  }
+  _makePinkNoiseBuffer(ctx, seconds = 4) {
+    const len = Math.floor(seconds * ctx.sampleRate);
+    const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const data = buf.getChannelData(ch);
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < len; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+        b6 = white * 0.115926;
+      }
+    }
+    return buf;
+  }
+  _scheduleDrop(ctx, destination, when) {
+    const burstLen = 0.005 + Math.random() * 0.015;
+    const bufLen = Math.ceil(burstLen * ctx.sampleRate);
+    const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1000 + Math.random() * 6000;
+    bp.Q.value = 15 + Math.random() * 20;
+    const env = ctx.createGain();
+    env.gain.value = 0;
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = (Math.random() - 0.5) * 1.6;
+    src.connect(bp).connect(env).connect(panner).connect(destination);
+    const peakGain = 0.15 + Math.random() * 0.35;
+    env.gain.setValueAtTime(0, when);
+    env.gain.linearRampToValueAtTime(peakGain, when + 0.001);
+    env.gain.exponentialRampToValueAtTime(0.001, when + burstLen + 0.05);
+    src.start(when);
+    src.stop(when + burstLen + 0.1);
+  }
+  _dropRate() { return 8 + this.intensity * 100; }
+  _scheduleDrops(ctx, destination, startTime, endTime) {
+    const rate = this._dropRate();
+    const duration = endTime - startTime;
+    const count = Math.floor(duration * rate);
+    for (let i = 0; i < count; i++) {
+      const when = startTime + Math.random() * duration;
+      this._scheduleDrop(ctx, destination, when);
+    }
+  }
+  start(ctx, destination) {
+    if (this.nodes) this.stop();
+    const bedBuf = this._makePinkNoiseBuffer(ctx, 4);
+    const bedSrc = ctx.createBufferSource();
+    bedSrc.buffer = bedBuf;
+    bedSrc.loop = true;
+    const bedBp = ctx.createBiquadFilter();
+    bedBp.type = 'bandpass';
+    bedBp.frequency.value = 3000;
+    bedBp.Q.value = 0.7;
+    const bedGain = ctx.createGain();
+    bedGain.gain.value = 0.3;
+    const shelterLpf = ctx.createBiquadFilter();
+    shelterLpf.type = 'lowpass';
+    shelterLpf.frequency.value = 22000;
+    shelterLpf.Q.value = 0.707;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    bedSrc.connect(bedBp).connect(bedGain).connect(shelterLpf).connect(gain);
+    gain.connect(destination);
+    bedSrc.start();
+    const target = AudioEngine.db2gain(this.volumeDb);
+    gain.gain.linearRampToValueAtTime(target, ctx.currentTime + 0.3);
+    const dropBus = ctx.createGain();
+    dropBus.gain.value = 1.0;
+    dropBus.connect(shelterLpf);
+    this.nodes = { ctx, bedSrc, bedBp, bedGain, shelterLpf, dropBus, gain };
+    this._applyIntensity();
+    this._applyShelter();
+    if (this._renderDuration !== null) {
+      this._scheduleDrops(ctx, dropBus, 0, this._renderDuration);
+    } else {
+      const scheduleWindow = 0.25;
+      const tick = () => {
+        if (!this.nodes) return;
+        const now = ctx.currentTime;
+        this._scheduleDrops(ctx, dropBus, now, now + scheduleWindow);
+      };
+      tick();
+      this._dropTimer = setInterval(tick, scheduleWindow * 1000);
+    }
+  }
+  stop() {
+    if (!this.nodes) return;
+    if (this._dropTimer) { clearInterval(this._dropTimer); this._dropTimer = null; }
+    const { ctx, bedSrc, gain } = this.nodes;
+    gain.gain.cancelScheduledValues(ctx.currentTime);
+    gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
+    try { bedSrc.stop(ctx.currentTime + 0.22); } catch (e) {}
+    this.nodes = null;
+  }
+  cloneForRender(durationSec) {
+    const clone = new RainEngine();
+    clone.enabled = true;
+    clone.intensity = this.intensity;
+    clone.shelter = this.shelter;
+    clone.volumeDb = this.volumeDb;
+    clone._renderDuration = durationSec;
+    return clone;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   [7/9] THUNDER — 5-layer synthesized strikes with distance and reverb
+   --------------------------------------------------------------------------- */
+class ThunderEngine {
+  constructor() {
+    this.enabled = false;
+    this.intensity = 0.7;
+    this.distance = 0.5;
+    this.frequency = 2;
+    this.volumeDb = -10;
+    this.nodes = null;
+    this._strikeTimer = null;
+    this._renderDuration = null;
+  }
+  setIntensity(v) { this.intensity = v; }
+  setDistance(v) { this.distance = v; if (this.nodes) this._applyDistance(); }
+  setFrequency(v) {
+    this.frequency = v;
+    if (this.nodes && this._renderDuration === null) this._rescheduleLive();
+  }
+  setVolume(db) {
+    this.volumeDb = db;
+    if (this.nodes) this.nodes.gain.gain.setTargetAtTime(AudioEngine.db2gain(db), this.nodes.ctx.currentTime, 0.1);
+  }
+  _applyDistance() {
+    const { distanceLpf, reverbWet, reverbDry } = this.nodes;
+    const cutoff = 18000 - this.distance * 17200;
+    distanceLpf.frequency.setTargetAtTime(cutoff, this.nodes.ctx.currentTime, 0.3);
+    reverbWet.gain.setTargetAtTime(0.2 + this.distance * 0.6, this.nodes.ctx.currentTime, 0.3);
+    reverbDry.gain.setTargetAtTime(1.0 - this.distance * 0.4, this.nodes.ctx.currentTime, 0.3);
+  }
+  _makeThunderReverbIR(ctx) {
+    const seconds = 6;
+    const len = Math.floor(seconds * ctx.sampleRate);
+    const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const data = buf.getChannelData(ch);
+      for (let i = 0; i < len; i++) {
+        const t = i / len;
+        const noise = (Math.random() * 2 - 1);
+        const env = Math.pow(1 - t, 2);
+        data[i] = noise * env * (0.3 + Math.random() * 0.7);
+      }
+      let prev = 0;
+      for (let i = 0; i < len; i++) { prev = prev * 0.85 + data[i] * 0.15; data[i] = prev; }
+    }
+    return buf;
+  }
+  _scheduleStrike(ctx, destination, when) {
+    const masterDur = 4 + Math.random() * 4;
+    const strikeGain = ctx.createGain();
+    strikeGain.gain.value = 0;
+    strikeGain.connect(destination);
+
+    // Layer 0: snap
+    const snapDur = 0.04 + Math.random() * 0.04;
+    const snapBuf = ctx.createBuffer(1, Math.ceil(snapDur * ctx.sampleRate), ctx.sampleRate);
+    const snapData = snapBuf.getChannelData(0);
+    for (let i = 0; i < snapData.length; i++) snapData[i] = Math.random() * 2 - 1;
+    const snapSrc = ctx.createBufferSource();
+    snapSrc.buffer = snapBuf;
+    const snapHp = ctx.createBiquadFilter();
+    snapHp.type = 'highpass';
+    snapHp.frequency.value = 2000;
+    snapHp.Q.value = 1.0;
+    const snapEnv = ctx.createGain();
+    snapEnv.gain.setValueAtTime(0, when);
+    snapEnv.gain.linearRampToValueAtTime(0.9 * this.intensity, when + 0.002);
+    snapEnv.gain.exponentialRampToValueAtTime(0.001, when + snapDur);
+    snapSrc.connect(snapHp).connect(snapEnv).connect(strikeGain);
+    snapSrc.start(when);
+    snapSrc.stop(when + snapDur + 0.05);
+
+    // Layer 1: crack
+    const crackDur = 0.4 + Math.random() * 0.4;
+    const crackBuf = ctx.createBuffer(2, Math.ceil(crackDur * ctx.sampleRate), ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = crackBuf.getChannelData(ch);
+      for (let i = 0; i < d.length; i++) {
+        const spike = Math.random() < 0.02 ? (Math.random() * 2 - 1) * 2 : 0;
+        d[i] = (Math.random() * 2 - 1) + spike;
+      }
+    }
+    const crackSrc = ctx.createBufferSource();
+    crackSrc.buffer = crackBuf;
+    const crackBp = ctx.createBiquadFilter();
+    crackBp.type = 'bandpass';
+    crackBp.frequency.value = 500 + Math.random() * 800;
+    crackBp.Q.value = 0.6;
+    const crackEnv = ctx.createGain();
+    crackEnv.gain.setValueAtTime(0, when);
+    crackEnv.gain.linearRampToValueAtTime(1.0 * this.intensity, when + 0.008);
+    crackEnv.gain.exponentialRampToValueAtTime(0.001, when + crackDur);
+    crackSrc.connect(crackBp).connect(crackEnv).connect(strikeGain);
+    crackSrc.start(when);
+    crackSrc.stop(when + crackDur + 0.1);
+
+    // Layer 1b: sub-bass boom
+    const subOsc = ctx.createOscillator();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(60, when);
+    subOsc.frequency.exponentialRampToValueAtTime(30, when + 0.5);
+    const subEnv = ctx.createGain();
+    subEnv.gain.setValueAtTime(0, when);
+    subEnv.gain.linearRampToValueAtTime(0.6 * this.intensity, when + 0.02);
+    subEnv.gain.exponentialRampToValueAtTime(0.001, when + 1.2);
+    subOsc.connect(subEnv).connect(strikeGain);
+    subOsc.start(when);
+    subOsc.stop(when + 1.3);
+
+    // Layer 2: low rumble
+    const rumbleDur = masterDur;
+    const rumbleBuf = ctx.createBuffer(2, Math.ceil(rumbleDur * ctx.sampleRate), ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = rumbleBuf.getChannelData(ch);
+      let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < d.length; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.997 * b0 + white * 0.06;
+        b1 = 0.985 * b1 + white * 0.09;
+        b2 = 0.95 * b2 + white * 0.15;
+        d[i] = (b0 + b1 + b2) * 0.5;
+      }
+    }
+    const rumbleSrc = ctx.createBufferSource();
+    rumbleSrc.buffer = rumbleBuf;
+    const rumbleLpf = ctx.createBiquadFilter();
+    rumbleLpf.type = 'lowpass';
+    rumbleLpf.frequency.value = 180;
+    rumbleLpf.Q.value = 1.2;
+    const rumbleEnv = ctx.createGain();
+    rumbleEnv.gain.setValueAtTime(0, when);
+    rumbleEnv.gain.linearRampToValueAtTime(1.2 * this.intensity, when + 0.1);
+    const peaks = 3 + Math.floor(Math.random() * 3);
+    for (let p = 1; p <= peaks; p++) {
+      const t = when + (p / (peaks + 1)) * rumbleDur;
+      const peakLevel = (0.4 + Math.random() * 0.8) * this.intensity;
+      rumbleEnv.gain.linearRampToValueAtTime(peakLevel, t);
+    }
+    rumbleEnv.gain.exponentialRampToValueAtTime(0.001, when + rumbleDur);
+    rumbleSrc.connect(rumbleLpf).connect(rumbleEnv).connect(strikeGain);
+    rumbleSrc.start(when);
+    rumbleSrc.stop(when + rumbleDur + 0.1);
+
+    // Layer 3: mid-body
+    const bodyDur = 1.5 + Math.random();
+    const bodySrc = ctx.createBufferSource();
+    bodySrc.buffer = rumbleBuf;
+    const bodyBp = ctx.createBiquadFilter();
+    bodyBp.type = 'bandpass';
+    bodyBp.frequency.value = 350;
+    bodyBp.Q.value = 0.9;
+    const bodyEnv = ctx.createGain();
+    bodyEnv.gain.setValueAtTime(0, when);
+    bodyEnv.gain.linearRampToValueAtTime(0.7 * this.intensity, when + 0.05);
+    bodyEnv.gain.exponentialRampToValueAtTime(0.001, when + bodyDur);
+    bodySrc.connect(bodyBp).connect(bodyEnv).connect(strikeGain);
+    bodySrc.start(when);
+    bodySrc.stop(when + bodyDur + 0.1);
+
+    strikeGain.gain.value = 1.0;
+  }
+  _scheduleStrikesForRange(ctx, destination, startT, endT) {
+    const ratePerSec = this.frequency / 60;
+    let t = startT + this._sampleExp(ratePerSec);
+    while (t < endT) { this._scheduleStrike(ctx, destination, t); t += this._sampleExp(ratePerSec); }
+  }
+  _sampleExp(rate) { if (rate <= 0) return Infinity; return -Math.log(1 - Math.random()) / rate; }
+  _rescheduleLive() {
+    if (this._strikeTimer) { clearInterval(this._strikeTimer); this._strikeTimer = null; }
+    const { ctx, strikeBus } = this.nodes;
+    const tick = () => {
+      if (!this.nodes) return;
+      const ratePerSec = this.frequency / 60;
+      const window = 1.0;
+      if (Math.random() < ratePerSec * window) {
+        this._scheduleStrike(ctx, strikeBus, ctx.currentTime + Math.random() * window);
+      }
+    };
+    this._strikeTimer = setInterval(tick, 1000);
+  }
+  start(ctx, destination) {
+    if (this.nodes) this.stop();
+    const strikeBus = ctx.createGain();
+    strikeBus.gain.value = 1.0;
+    const distanceLpf = ctx.createBiquadFilter();
+    distanceLpf.type = 'lowpass';
+    distanceLpf.frequency.value = 18000;
+    distanceLpf.Q.value = 0.707;
+    const convolver = ctx.createConvolver();
+    convolver.buffer = this._makeThunderReverbIR(ctx);
+    const reverbDry = ctx.createGain();
+    const reverbWet = ctx.createGain();
+    reverbDry.gain.value = 0.8;
+    reverbWet.gain.value = 0.5;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    strikeBus.connect(distanceLpf);
+    distanceLpf.connect(reverbDry);
+    distanceLpf.connect(convolver).connect(reverbWet);
+    reverbDry.connect(gain);
+    reverbWet.connect(gain);
+    gain.connect(destination);
+    const target = AudioEngine.db2gain(this.volumeDb);
+    gain.gain.linearRampToValueAtTime(target, ctx.currentTime + 0.3);
+    this.nodes = { ctx, strikeBus, distanceLpf, convolver, reverbDry, reverbWet, gain };
+    this._applyDistance();
+    if (this._renderDuration !== null) this._scheduleStrikesForRange(ctx, strikeBus, 0, this._renderDuration);
+    else this._rescheduleLive();
+  }
+  stop() {
+    if (!this.nodes) return;
+    if (this._strikeTimer) { clearInterval(this._strikeTimer); this._strikeTimer = null; }
+    const { ctx, gain } = this.nodes;
+    gain.gain.cancelScheduledValues(ctx.currentTime);
+    gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+    this.nodes = null;
+  }
+  triggerNow() {
+    if (!this.nodes) return;
+    const { ctx, strikeBus } = this.nodes;
+    this._scheduleStrike(ctx, strikeBus, ctx.currentTime + 0.05);
+  }
+  cloneForRender(durationSec) {
+    const clone = new ThunderEngine();
+    clone.enabled = true;
+    clone.intensity = this.intensity;
+    clone.distance = this.distance;
+    clone.frequency = this.frequency;
+    clone.volumeDb = this.volumeDb;
+    clone._renderDuration = durationSec;
+    return clone;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   [8/9] TRACK — user audio file, LPF/HPF, fades
+   --------------------------------------------------------------------------- */
+class TrackEngine {
+  constructor() {
+    this.enabled = false;
+    this.volumeDb = -6;
+    this.loop = true;
+    this.loopCrossfade = 2.0;
+    this.lpfHz = 22000;
+    this.hpfHz = 20;
+    this.fadeInSec = 2;
+    this.fadeOutSec = 3;
+    this.rawArrayBuffer = null;
+    this.decodedBuffer = null;
+    this.fileName = '';
+    this.duration = 0;
+    this.nodes = null;
+    this._renderDuration = null;
+    this._onLoad = null;
+  }
+  onLoad(cb) { this._onLoad = cb; }
+  setVolume(db) {
+    this.volumeDb = db;
+    if (this.nodes) this.nodes.gain.gain.setTargetAtTime(AudioEngine.db2gain(db), this.nodes.ctx.currentTime, 0.1);
+  }
+  setLoop(v) { this.loop = v; if (this.nodes && this.nodes.src) this.nodes.src.loop = v; }
+  setLpf(hz) {
+    this.lpfHz = hz;
+    if (this.nodes) this.nodes.lpf.frequency.setTargetAtTime(hz, this.nodes.ctx.currentTime, 0.1);
+  }
+  setHpf(hz) {
+    this.hpfHz = hz;
+    if (this.nodes) this.nodes.hpf.frequency.setTargetAtTime(hz, this.nodes.ctx.currentTime, 0.1);
+  }
+  async loadFile(file) {
+    this.fileName = file.name;
+    const arrayBuffer = await file.arrayBuffer();
+    this.rawArrayBuffer = arrayBuffer;
+    const tempCtx = new (window.AudioContext || window.webkitAudioContext)();
+    try {
+      const decoded = await tempCtx.decodeAudioData(arrayBuffer.slice(0));
+      this.decodedBuffer = decoded;
+      this.duration = decoded.duration;
+    } finally {
+      await tempCtx.close();
+    }
+    if (this._onLoad) this._onLoad({ fileName: this.fileName, duration: this.duration, channels: this.decodedBuffer.numberOfChannels });
+  }
+  clear() {
+    this.stop();
+    this.rawArrayBuffer = null;
+    this.decodedBuffer = null;
+    this.fileName = '';
+    this.duration = 0;
+    if (this._onLoad) this._onLoad(null);
+  }
+  async _decodeForContext(ctx) {
+    if (!this.rawArrayBuffer) return null;
+    return await ctx.decodeAudioData(this.rawArrayBuffer.slice(0));
+  }
+  async start(ctx, destination) {
+    if (!this.rawArrayBuffer) return;
+    if (this.nodes) this.stop();
+    const buffer = await this._decodeForContext(ctx);
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.loop = this.loop;
+    const hpf = ctx.createBiquadFilter();
+    hpf.type = 'highpass';
+    hpf.frequency.value = this.hpfHz;
+    hpf.Q.value = 0.707;
+    const lpf = ctx.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.value = this.lpfHz;
+    lpf.Q.value = 0.707;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    src.connect(hpf).connect(lpf).connect(gain).connect(destination);
+    const target = AudioEngine.db2gain(this.volumeDb);
+    const startT = ctx.currentTime;
+    gain.gain.setValueAtTime(0, startT);
+    gain.gain.linearRampToValueAtTime(target, startT + this.fadeInSec);
+    if (this._renderDuration !== null) {
+      const fadeStart = Math.max(0, this._renderDuration - this.fadeOutSec);
+      gain.gain.setValueAtTime(target, fadeStart);
+      gain.gain.linearRampToValueAtTime(0, this._renderDuration);
+    }
+    src.start(0);
+    this.nodes = { ctx, src, hpf, lpf, gain };
+  }
+  stop() {
+    if (!this.nodes) return;
+    const { ctx, src, gain } = this.nodes;
+    gain.gain.cancelScheduledValues(ctx.currentTime);
+    gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.2);
+    try { src.stop(ctx.currentTime + 0.22); } catch (e) {}
+    this.nodes = null;
+  }
+  cloneForRender(durationSec) {
+    const clone = new TrackEngine();
+    clone.enabled = true;
+    clone.volumeDb = this.volumeDb;
+    clone.loop = this.loop;
+    clone.lpfHz = this.lpfHz;
+    clone.hpfHz = this.hpfHz;
+    clone.fadeInSec = this.fadeInSec;
+    clone.fadeOutSec = this.fadeOutSec;
+    clone.rawArrayBuffer = this.rawArrayBuffer;
+    clone.decodedBuffer = null;
+    clone.duration = this.duration;
+    clone._renderDuration = durationSec;
+    return clone;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   [9/9] NATURE LAYER — URL-based sample player + built-in library
+   --------------------------------------------------------------------------- */
+const bufferCache = new Map();
+
+async function fetchBuffer(url) {
+  if (bufferCache.has(url)) return bufferCache.get(url);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
+  const buf = await res.arrayBuffer();
+  bufferCache.set(url, buf);
+  return buf;
+}
+
+class NatureLayer {
+  constructor(categoryKey) {
+    this.categoryKey = categoryKey;
+    this.enabled = false;
+    this.url = null;
+    this.displayName = '';
+    this.volumeDb = -14;
+    this.pan = 0;
+    this.lpfHz = 22000;
+    this.hpfHz = 20;
+    this.fadeInSec = 3;
+    this.fadeOutSec = 4;
+    this.nodes = null;
+    this._renderDuration = null;
+  }
+  setSample(url, displayName) {
+    const changed = url !== this.url;
+    this.url = url;
+    this.displayName = displayName;
+    if (this.nodes && changed) {
+      this.stop();
+      if (this.enabled && this._liveCtx) this.start(this._liveCtx, this._liveDest);
+    }
+  }
+  setVolume(db) {
+    this.volumeDb = db;
+    if (this.nodes) this.nodes.gain.gain.setTargetAtTime(AudioEngine.db2gain(db), this.nodes.ctx.currentTime, 0.1);
+  }
+  setPan(v) {
+    this.pan = v;
+    if (this.nodes) this.nodes.panner.pan.setTargetAtTime(v, this.nodes.ctx.currentTime, 0.1);
+  }
+  setLpf(hz) { this.lpfHz = hz; if (this.nodes) this.nodes.lpf.frequency.setTargetAtTime(hz, this.nodes.ctx.currentTime, 0.1); }
+  setHpf(hz) { this.hpfHz = hz; if (this.nodes) this.nodes.hpf.frequency.setTargetAtTime(hz, this.nodes.ctx.currentTime, 0.1); }
+  async start(ctx, destination) {
+    if (!this.url) return;
+    if (this.nodes) this.stop();
+    this._liveCtx = ctx;
+    this._liveDest = destination;
+    const raw = await fetchBuffer(this.url);
+    const buffer = await ctx.decodeAudioData(raw.slice(0));
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.loop = true;
+    const hpf = ctx.createBiquadFilter();
+    hpf.type = 'highpass';
+    hpf.frequency.value = this.hpfHz;
+    hpf.Q.value = 0.707;
+    const lpf = ctx.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.value = this.lpfHz;
+    lpf.Q.value = 0.707;
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = this.pan;
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    src.connect(hpf).connect(lpf).connect(panner).connect(gain).connect(destination);
+    const target = AudioEngine.db2gain(this.volumeDb);
+    const startT = ctx.currentTime;
+    gain.gain.setValueAtTime(0, startT);
+    gain.gain.linearRampToValueAtTime(target, startT + this.fadeInSec);
+    if (this._renderDuration !== null) {
+      const fadeStart = Math.max(this.fadeInSec, this._renderDuration - this.fadeOutSec);
+      gain.gain.setValueAtTime(target, fadeStart);
+      gain.gain.linearRampToValueAtTime(0, this._renderDuration);
+    }
+    src.start(0);
+    this.nodes = { ctx, src, hpf, lpf, panner, gain };
+  }
+  stop() {
+    if (!this.nodes) return;
+    const { ctx, src, gain } = this.nodes;
+    gain.gain.cancelScheduledValues(ctx.currentTime);
+    gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+    try { src.stop(ctx.currentTime + 0.32); } catch (e) {}
+    this.nodes = null;
+  }
+  cloneForRender(durationSec) {
+    const clone = new NatureLayer(this.categoryKey);
+    clone.enabled = true;
+    clone.url = this.url;
+    clone.displayName = this.displayName;
+    clone.volumeDb = this.volumeDb;
+    clone.pan = this.pan;
+    clone.lpfHz = this.lpfHz;
+    clone.hpfHz = this.hpfHz;
+    clone.fadeInSec = this.fadeInSec;
+    clone.fadeOutSec = this.fadeOutSec;
+    clone._renderDuration = durationSec;
+    return clone;
+  }
+}
+
+const NATURE_BASE = 'samples/nature';
+const natEnc = encodeURIComponent;
+function natU(cat, filename) { return `${NATURE_BASE}/${cat}/${filename.split('/').map(natEnc).join('/')}`; }
+
+const NATURE_LIBRARY = {
+  rain: {
+    label: 'Rain',
+    samples: [
+      { name: 'African Rain',       url: natU('rain', 'African Rain.mp3') },
+      { name: 'Long Soothing Rain', url: natU('rain', 'Long Soothing Rain.mp3') },
+      { name: 'Rain in Forest',     url: natU('rain', 'Rain in Forest.mp3') },
+      { name: 'Rain on a Pond',     url: natU('rain', 'Rain on a pond.mp3') },
+      { name: 'Rainshowers',        url: natU('rain', 'Rainshowers.mp3') },
+      { name: 'Wind and Rain',      url: natU('rain', 'Wind and Rain.mp3') },
+      { name: 'Rain in Woods',      url: natU('rain', 'rain in woods.mp3') },
+    ],
+  },
+  storm: {
+    label: 'Storms & Thunder',
+    samples: [
+      { name: 'Continuous Thunder Claps',         url: natU('rain', 'Continuous Thunder Claps And Rumbles.mp3') },
+      { name: 'Heavy Rain with Rolling Thunder',  url: natU('rain', 'Heavy Rain With Rolling Thunder.mp3') },
+      { name: 'Severe Thunderstorm (light rain)', url: natU('rain', 'Severe Thunderstorm (with light rain).mp3') },
+      { name: 'Storm · Thunder · Wind · Rain',    url: natU('rain', 'Storm, Thunder, Wind, And Rain.mp3') },
+      { name: 'Thunder and Rain',                 url: natU('rain', 'Thunder and rain.mp3') },
+      { name: 'Thunder, Light & Heavy Rain',      url: natU('rain', 'Thunder, Light & Heavy Rain.mp3') },
+    ],
+  },
+  ocean: {
+    label: 'Ocean',
+    samples: [
+      { name: 'Gentle Ocean',          url: natU('ocean', 'Gentle Ocean.mp3') },
+      { name: 'Relaxing Surf',         url: natU('ocean', 'Ocean Relaxing Surf.mp3') },
+      { name: 'Ocean Surf',            url: natU('ocean', 'Ocean Surf.mp3') },
+      { name: 'Pebble Beach Waves',    url: natU('ocean', 'Ocean Waves - Pebble Beach.mp3') },
+      { name: 'Ocean Waves',           url: natU('ocean', 'Ocean Waves.MP3') },
+      { name: 'Pleasant Beach',        url: natU('ocean', 'Pleasant Beach.mp3') },
+      { name: 'Wind Near Ocean',       url: natU('ocean', 'Winds blowing near the ocean1.mp3') },
+      { name: 'Low Tide',              url: natU('ocean', 'low tide.mp3') },
+    ],
+  },
+  river: {
+    label: 'Water & Rivers',
+    samples: [
+      { name: 'Jungle River', url: natU('river', 'Jungle River.mp3') },
+      { name: 'Waterfall',    url: natU('river', 'Waterfall.mp3') },
+      { name: 'Small Rapid',  url: natU('river', 'small rapid.mp3') },
+    ],
+  },
+  forest: {
+    label: 'Forest',
+    samples: [
+      { name: 'Tropical Rain Forest',         url: natU('rainforest', 'A Tropical Rain Forest.mp3') },
+      { name: 'S. American Rainforest',       url: natU('rainforest', 'South American rain forest - waterfall in background.mp3') },
+      { name: 'Tropical Rain',                url: natU('rainforest', 'Tropical Rain.mp3') },
+    ],
+  },
+  creatures: {
+    label: 'Creatures',
+    samples: [
+      { name: 'Birds in Rain Forest',      url: natU('creatures', 'Birds In A Rain Forest.mp3') },
+      { name: 'Birds and Dogs',            url: natU('creatures', 'Birds and Dogs.mp3') },
+      { name: 'Birds · Waterfall',         url: natU('creatures', 'Birds chirping and singing - waterfall in background.mp3') },
+      { name: 'Blackbird & Sparrows',      url: natU('creatures', 'Blackbird and Sparrows.mp3') },
+      { name: 'Crickets and Water',        url: natU('creatures', 'Crickets And Water.mp3') },
+      { name: 'Duck and Geese',            url: natU('creatures', 'Duck and Geese.mp3') },
+      { name: 'Frog Chorus',               url: natU('creatures', 'Frog Chorus.mp3') },
+      { name: 'Swamp Frogs & Birds',       url: natU('creatures', 'Frogs, birds - other swamp sounds.mp3') },
+      { name: 'Many Birds · Crickets',     url: natU('creatures', 'Many birds chirping - crickets or June bugs.mp3') },
+      { name: 'Streamside Songbirds',      url: natU('creatures', 'Streamside Songbirds.mp3') },
+      { name: 'Wolves Howling (Pack)',     url: natU('creatures', 'Wolves Howling and Pack Barking.MP3') },
+      { name: 'Wolves Howling',            url: natU('creatures', 'wolves howling.mp3') },
+    ],
+  },
+};
+
+/* ---------------------------------------------------------------------------
+   APP WIRING — engines, transport, UI event handlers, export
+   --------------------------------------------------------------------------- */
+const track = new TrackEngine();
+const binaural = new BinauralEngine();
+const solfeggio = new SolfeggioEngine();
+const rain = new RainEngine();
+const thunder = new ThunderEngine();
+audioEngine.registerEngine(track);
+audioEngine.registerEngine(binaural);
+audioEngine.registerEngine(solfeggio);
+audioEngine.registerEngine(rain);
+audioEngine.registerEngine(thunder);
+
+const natureLayers = {};
+for (const key of Object.keys(NATURE_LIBRARY)) {
+  const layer = new NatureLayer(key);
+  natureLayers[key] = layer;
+  audioEngine.registerEngine(layer);
+}
+
+// Transport
+const btnPlay = document.getElementById('btn-play');
+const btnStop = document.getElementById('btn-stop');
+let visualizer = null;
+let lufsInterval = null;
+
+async function play() {
+  await audioEngine.play();
+  btnPlay.textContent = 'Pause';
+  btnPlay.classList.add('playing');
+  if (!visualizer) {
+    const canvas = document.getElementById('visualizer');
+    visualizer = new Visualizer(canvas, audioEngine.analyser);
+  }
+  visualizer.start();
+  if (lufsInterval) clearInterval(lufsInterval);
+  const lufsEl = document.getElementById('lufs-value');
+  lufsInterval = setInterval(() => {
+    const lufs = visualizer.getLufsApprox();
+    lufsEl.textContent = (lufs === -Infinity || isNaN(lufs)) ? '—' : lufs.toFixed(1);
+  }, 250);
+}
+
+function stop() {
+  audioEngine.stop();
+  btnPlay.textContent = 'Play';
+  btnPlay.classList.remove('playing');
+  if (visualizer) visualizer.stop();
+  if (lufsInterval) { clearInterval(lufsInterval); lufsInterval = null; }
+  document.getElementById('lufs-value').textContent = '—';
+}
+
+btnPlay.addEventListener('click', () => { if (audioEngine.isPlaying) stop(); else play(); });
+btnStop.addEventListener('click', stop);
+
+// Track Loader UI
+const trackEnabled = document.getElementById('track-enabled');
+const trackDropzone = document.getElementById('track-dropzone');
+const trackFileInput = document.getElementById('track-file');
+const trackVol = document.getElementById('track-vol');
+const trackHpf = document.getElementById('track-hpf');
+const trackLpf = document.getElementById('track-lpf');
+const trackLoop = document.getElementById('track-loop');
+const dropzoneEmpty = trackDropzone.querySelector('.dropzone-empty');
+const dropzoneLoaded = trackDropzone.querySelector('.dropzone-loaded');
+
+function fmtDuration(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+track.onLoad((info) => {
+  if (!info) { dropzoneEmpty.classList.remove('hidden'); dropzoneLoaded.classList.add('hidden'); return; }
+  document.getElementById('track-filename').textContent = info.fileName;
+  document.getElementById('track-meta').textContent = `${fmtDuration(info.duration)} · ${info.channels === 2 ? 'Stereo' : 'Mono'}`;
+  dropzoneEmpty.classList.add('hidden');
+  dropzoneLoaded.classList.remove('hidden');
+});
+
+async function handleTrackFile(file) {
+  if (!file || !file.type.startsWith('audio/')) { alert('Please drop an audio file (WAV, MP3, FLAC, OGG).'); return; }
+  document.getElementById('track-filename').textContent = 'Loading…';
+  document.getElementById('track-meta').textContent = '';
+  dropzoneEmpty.classList.add('hidden');
+  dropzoneLoaded.classList.remove('hidden');
+  try {
+    await track.loadFile(file);
+    trackEnabled.checked = true;
+    track.enabled = true;
+    if (audioEngine.isPlaying) await track.start(audioEngine.ctx, audioEngine.masterBus);
+  } catch (err) {
+    alert(`Failed to load: ${err.message}`);
+    track.clear();
+  }
+}
+
+trackDropzone.addEventListener('click', (e) => {
+  if (e.target.closest('.dropzone-loaded')) return;
+  trackFileInput.click();
+});
+trackFileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) handleTrackFile(file);
+  trackFileInput.value = '';
+});
+trackDropzone.addEventListener('dragover', (e) => { e.preventDefault(); trackDropzone.classList.add('dragover'); });
+trackDropzone.addEventListener('dragleave', () => trackDropzone.classList.remove('dragover'));
+trackDropzone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  trackDropzone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleTrackFile(file);
+});
+document.getElementById('btn-track-clear').addEventListener('click', (e) => {
+  e.stopPropagation();
+  track.clear();
+  trackEnabled.checked = false;
+  track.enabled = false;
+});
+trackEnabled.addEventListener('change', async (e) => {
+  track.enabled = e.target.checked;
+  if (audioEngine.isPlaying) {
+    if (track.enabled) await track.start(audioEngine.ctx, audioEngine.masterBus);
+    else track.stop();
+  }
+});
+trackVol.addEventListener('input', (e) => {
+  const db = Number(e.target.value);
+  track.setVolume(db);
+  document.getElementById('track-vol-val').textContent = `${db >= 0 ? '+' : ''}${db} dB`;
+});
+trackHpf.addEventListener('input', (e) => {
+  const hz = Number(e.target.value);
+  track.setHpf(hz);
+  document.getElementById('track-hpf-val').textContent = hz < 1000 ? `${hz} Hz` : `${(hz / 1000).toFixed(1)} kHz`;
+});
+trackLpf.addEventListener('input', (e) => {
+  const hz = Number(e.target.value);
+  track.setLpf(hz);
+  document.getElementById('track-lpf-val').textContent = hz < 1000 ? `${hz} Hz` : `${(hz / 1000).toFixed(1)} kHz`;
+});
+trackLoop.addEventListener('change', (e) => track.setLoop(e.target.checked));
+
+// Track progress ticker
+setInterval(() => {
+  if (track.nodes && track.decodedBuffer) {
+    if (track._startTime === undefined) track._startTime = track.nodes.ctx.currentTime;
+    const elapsed = track.nodes.ctx.currentTime - track._startTime;
+    const pos = track.loop ? (elapsed % track.duration) / track.duration : Math.min(elapsed / track.duration, 1);
+    const fill = document.getElementById('track-progress-fill');
+    if (fill) fill.style.width = `${(pos * 100).toFixed(1)}%`;
+  } else {
+    track._startTime = undefined;
+    const fill = document.getElementById('track-progress-fill');
+    if (fill) fill.style.width = '0%';
+  }
+}, 100);
+
+// Binaural UI
+const binEnabled = document.getElementById('binaural-enabled');
+const binCarrier = document.getElementById('bin-carrier');
+const binBeat = document.getElementById('bin-beat');
+const binVol = document.getElementById('bin-vol');
+
+binEnabled.addEventListener('change', (e) => {
+  binaural.enabled = e.target.checked;
+  if (audioEngine.isPlaying) {
+    if (binaural.enabled) binaural.start(audioEngine.ctx, audioEngine.masterBus);
+    else binaural.stop();
+  }
+});
+binCarrier.addEventListener('input', (e) => {
+  const hz = Number(e.target.value);
+  binaural.setCarrier(hz);
+  document.getElementById('bin-carrier-val').textContent = `${hz} Hz`;
+});
+binBeat.addEventListener('input', (e) => {
+  const hz = Number(e.target.value);
+  binaural.setBeat(hz);
+  document.getElementById('bin-beat-val').textContent = beatBandLabel(hz);
+});
+binVol.addEventListener('input', (e) => {
+  const db = Number(e.target.value);
+  binaural.setVolume(db);
+  document.getElementById('bin-vol-val').textContent = `${db >= 0 ? '+' : ''}${db} dB`;
+});
+document.querySelectorAll('.preset-btn[data-beat]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const hz = Number(btn.dataset.beat);
+    binBeat.value = hz;
+    binaural.setBeat(hz);
+    document.getElementById('bin-beat-val').textContent = beatBandLabel(hz);
+  });
+});
+
+// Solfeggio UI
+const solfEnabled = document.getElementById('solf-enabled');
+const solfFreq = document.getElementById('solf-freq');
+const solfHarm = document.getElementById('solf-harmonics');
+const solfLfo = document.getElementById('solf-lfo');
+const solfRev = document.getElementById('solf-rev');
+const solfVol = document.getElementById('solf-vol');
+
+solfEnabled.addEventListener('change', (e) => {
+  solfeggio.enabled = e.target.checked;
+  if (audioEngine.isPlaying) {
+    if (solfeggio.enabled) solfeggio.start(audioEngine.ctx, audioEngine.masterBus);
+    else solfeggio.stop();
+  }
+});
+solfFreq.addEventListener('change', (e) => solfeggio.setFrequency(Number(e.target.value)));
+solfHarm.addEventListener('change', (e) => solfeggio.setHarmonics(e.target.value));
+solfLfo.addEventListener('input', (e) => {
+  const hz = Number(e.target.value);
+  solfeggio.setLfoRate(hz);
+  document.getElementById('solf-lfo-val').textContent = `${hz.toFixed(2)} Hz`;
+});
+solfRev.addEventListener('input', (e) => {
+  const pct = Number(e.target.value);
+  solfeggio.setReverbMix(pct / 100);
+  document.getElementById('solf-rev-val').textContent = `${pct}%`;
+});
+solfVol.addEventListener('input', (e) => {
+  const db = Number(e.target.value);
+  solfeggio.setVolume(db);
+  document.getElementById('solf-vol-val').textContent = `${db >= 0 ? '+' : ''}${db} dB`;
+});
+
+// Rain UI
+const rainEnabled = document.getElementById('rain-enabled');
+const rainInt = document.getElementById('rain-int');
+const rainShelter = document.getElementById('rain-shelter');
+const rainVol = document.getElementById('rain-vol');
+
+rainEnabled.addEventListener('change', (e) => {
+  rain.enabled = e.target.checked;
+  if (audioEngine.isPlaying) {
+    if (rain.enabled) rain.start(audioEngine.ctx, audioEngine.masterBus);
+    else rain.stop();
+  }
+});
+function rainIntLabel(v) {
+  if (v < 20) return 'Drizzle';
+  if (v < 50) return 'Light';
+  if (v < 75) return 'Steady';
+  return 'Downpour';
+}
+function rainShelterLabel(v) {
+  if (v < 10) return 'Open';
+  if (v < 40) return 'Under roof';
+  if (v < 70) return 'Porch';
+  return 'Indoors';
+}
+rainInt.addEventListener('input', (e) => {
+  const v = Number(e.target.value);
+  rain.setIntensity(v / 100);
+  document.getElementById('rain-int-val').textContent = rainIntLabel(v);
+});
+rainShelter.addEventListener('input', (e) => {
+  const v = Number(e.target.value);
+  rain.setShelter(v / 100);
+  document.getElementById('rain-shelter-val').textContent = rainShelterLabel(v);
+});
+rainVol.addEventListener('input', (e) => {
+  const db = Number(e.target.value);
+  rain.setVolume(db);
+  document.getElementById('rain-vol-val').textContent = `${db >= 0 ? '+' : ''}${db} dB`;
+});
+document.querySelectorAll('.preset-btn[data-rain-int]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const intVal = Number(btn.dataset.rainInt);
+    const shVal = Number(btn.dataset.rainShelter);
+    rainInt.value = intVal;
+    rainShelter.value = shVal;
+    rain.setIntensity(intVal / 100);
+    rain.setShelter(shVal / 100);
+    document.getElementById('rain-int-val').textContent = rainIntLabel(intVal);
+    document.getElementById('rain-shelter-val').textContent = rainShelterLabel(shVal);
+  });
+});
+
+// Thunder UI
+const thunderEnabled = document.getElementById('thunder-enabled');
+const thunderInt = document.getElementById('thunder-int');
+const thunderDist = document.getElementById('thunder-dist');
+const thunderFreq = document.getElementById('thunder-freq');
+const thunderVol = document.getElementById('thunder-vol');
+
+thunderEnabled.addEventListener('change', (e) => {
+  thunder.enabled = e.target.checked;
+  if (audioEngine.isPlaying) {
+    if (thunder.enabled) thunder.start(audioEngine.ctx, audioEngine.masterBus);
+    else thunder.stop();
+  }
+});
+thunderInt.addEventListener('input', (e) => {
+  const v = Number(e.target.value);
+  thunder.setIntensity(v / 100);
+  document.getElementById('thunder-int-val').textContent = `${v}%`;
+});
+function distLabel(v) {
+  if (v < 20) return 'Close';
+  if (v < 50) return 'Mid';
+  if (v < 80) return 'Far';
+  return 'Horizon';
+}
+thunderDist.addEventListener('input', (e) => {
+  const v = Number(e.target.value);
+  thunder.setDistance(v / 100);
+  document.getElementById('thunder-dist-val').textContent = distLabel(v);
+});
+thunderFreq.addEventListener('input', (e) => {
+  const v = Number(e.target.value);
+  thunder.setFrequency(v);
+  document.getElementById('thunder-freq-val').textContent = v.toFixed(1);
+});
+thunderVol.addEventListener('input', (e) => {
+  const db = Number(e.target.value);
+  thunder.setVolume(db);
+  document.getElementById('thunder-vol-val').textContent = `${db >= 0 ? '+' : ''}${db} dB`;
+});
+document.getElementById('btn-thunder-trigger').addEventListener('click', async () => {
+  if (!audioEngine.isPlaying) {
+    await audioEngine.play();
+    btnPlay.textContent = 'Pause';
+    btnPlay.classList.add('playing');
+  }
+  if (!thunder.nodes) thunder.start(audioEngine.ctx, audioEngine.masterBus);
+  thunder.triggerNow();
+});
+document.querySelectorAll('.preset-btn[data-thunder-dist]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const distVal = Number(btn.dataset.thunderDist);
+    const freqVal = Number(btn.dataset.thunderFreq);
+    thunderDist.value = distVal;
+    thunderFreq.value = freqVal;
+    thunder.setDistance(distVal / 100);
+    thunder.setFrequency(freqVal);
+    document.getElementById('thunder-dist-val').textContent = distLabel(distVal);
+    document.getElementById('thunder-freq-val').textContent = freqVal.toFixed(1);
+  });
+});
+
+// Master UI
+function wireMaster(nodeKey, sliderId, valueId, unit = 'dB', target = 'gain') {
+  const slider = document.getElementById(sliderId);
+  const valEl = document.getElementById(valueId);
+  slider.addEventListener('input', (e) => {
+    const v = Number(e.target.value);
+    audioEngine.init();
+    const node = audioEngine.nodes[nodeKey];
+    if (target === 'gain') node.gain.value = v;
+    else if (target === 'threshold') node.threshold.value = v;
+    valEl.textContent = `${v >= 0 && unit === 'dB' ? '+' : ''}${v} ${unit}`;
+  });
+}
+wireMaster('lowShelf', 'eq-low', 'eq-low-val');
+wireMaster('midBell', 'eq-mid', 'eq-mid-val');
+wireMaster('highShelf', 'eq-high', 'eq-high-val');
+wireMaster('limiter', 'master-ceil', 'master-ceil-val', 'dB', 'threshold');
+
+document.getElementById('master-width').addEventListener('input', (e) => {
+  const pct = Number(e.target.value);
+  audioEngine.init();
+  audioEngine.nodes.widener.setWidth(pct);
+  audioEngine.nodes.widener._currentWidth = pct;
+  document.getElementById('master-width-val').textContent = `${pct}%`;
+});
+
+document.getElementById('master-gain').addEventListener('input', (e) => {
+  const db = Number(e.target.value);
+  audioEngine.init();
+  audioEngine.nodes.masterGain.gain.setTargetAtTime(AudioEngine.db2gain(db), audioEngine.ctx.currentTime, 0.05);
+  document.getElementById('master-gain-val').textContent = `${db >= 0 ? '+' : ''}${db} dB`;
+});
+
+// Export
+const btnRender = document.getElementById('btn-render');
+btnRender.addEventListener('click', async () => {
+  const duration = Number(document.getElementById('export-duration').value);
+  const format = document.getElementById('export-format').value;
+  const title = document.getElementById('export-title').value.trim() || 'Cosmic_Music_Maker';
+  const [sr, depth] = format.split('-').map(Number);
+  const anyEngineOn = audioEngine.engines.some((e) => e.enabled);
+  if (!anyEngineOn) { alert('Enable at least one engine before rendering.'); return; }
+  audioEngine.init();
+  const progressEl = document.getElementById('render-progress');
+  const progressFill = progressEl.querySelector('.progress-fill');
+  const progressLabel = progressEl.querySelector('.progress-label');
+  progressEl.classList.remove('hidden');
+  progressFill.style.width = '0%';
+  progressLabel.textContent = 'Rendering…';
+  btnRender.disabled = true;
+  try {
+    const buffer = await audioEngine.render(duration, sr, depth, (p) => {
+      progressFill.style.width = `${(p * 100).toFixed(1)}%`;
+    });
+    progressLabel.textContent = 'Encoding WAV…';
+    const blob = audioBufferToWav(buffer, depth);
+    const filename = `${safeFilename(title)}_${Math.round(duration / 60)}min_${sr / 1000}kHz_${depth}bit.wav`;
+    downloadBlob(blob, filename);
+    progressLabel.textContent = `Rendered: ${filename}`;
+    progressFill.style.width = '100%';
+  } catch (err) {
+    console.error(err);
+    progressLabel.textContent = `Error: ${err.message}`;
+  } finally {
+    btnRender.disabled = false;
+    setTimeout(() => { progressEl.classList.add('hidden'); progressFill.style.width = '0%'; }, 6000);
+  }
+});
+
+// Nature Library UI
+const natureBody = document.getElementById('nature-body');
+for (const [key, cat] of Object.entries(NATURE_LIBRARY)) {
+  const layer = natureLayers[key];
+  const card = document.createElement('div');
+  card.className = 'nature-layer';
+  card.dataset.category = key;
+  card.innerHTML = `
+    <div class="nature-layer-head">
+      <span class="nature-layer-label">${cat.label}</span>
+      <label class="engine-toggle">
+        <input type="checkbox" class="nl-enabled">
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+    <select class="nature-layer-select nl-select">
+      <option value="">— Choose sample —</option>
+      ${cat.samples.map((s, i) => `<option value="${i}">${s.name}</option>`).join('')}
+    </select>
+    <div class="nature-layer-row">
+      <label>Vol <span class="val nl-vol-val">−14</span></label>
+      <input type="range" class="nl-vol" min="-60" max="0" value="-14" step="0.5">
+    </div>
+    <div class="nature-layer-row">
+      <label>Pan <span class="val nl-pan-val">C</span></label>
+      <input type="range" class="nl-pan" min="-100" max="100" value="0" step="1">
+    </div>
+  `;
+  const cbEnabled = card.querySelector('.nl-enabled');
+  const sel = card.querySelector('.nl-select');
+  const volSlider = card.querySelector('.nl-vol');
+  const volVal = card.querySelector('.nl-vol-val');
+  const panSlider = card.querySelector('.nl-pan');
+  const panVal = card.querySelector('.nl-pan-val');
+  cbEnabled.addEventListener('change', async (e) => {
+    layer.enabled = e.target.checked;
+    card.classList.toggle('active', layer.enabled);
+    if (audioEngine.isPlaying) {
+      if (layer.enabled && layer.url) await layer.start(audioEngine.ctx, audioEngine.masterBus);
+      else layer.stop();
+    }
+  });
+  sel.addEventListener('change', (e) => {
+    const idx = e.target.value;
+    if (idx === '') { layer.setSample(null, ''); }
+    else { const s = cat.samples[Number(idx)]; layer.setSample(s.url, s.name); }
+  });
+  volSlider.addEventListener('input', (e) => {
+    const db = Number(e.target.value);
+    layer.setVolume(db);
+    volVal.textContent = `${db}`;
+  });
+  panSlider.addEventListener('input', (e) => {
+    const v = Number(e.target.value) / 100;
+    layer.setPan(v);
+    const label = Math.abs(v) < 0.05 ? 'C' : (v < 0 ? `L${Math.round(-v * 100)}` : `R${Math.round(v * 100)}`);
+    panVal.textContent = label;
+  });
+  natureBody.appendChild(card);
+}
+
+// Starfield backdrop — twinkles + slow drift, synced to play state (brighter when playing)
+(function starfield() {
+  const canvas = document.getElementById('starfield');
+  if (!canvas) return;
+  const ctx2d = canvas.getContext('2d');
+  let w, h, stars;
+  const DPR = Math.min(window.devicePixelRatio || 1, 1.75);
+
+  const resize = () => {
+    w = canvas.width = Math.floor(window.innerWidth * DPR);
+    h = canvas.height = Math.floor(window.innerHeight * DPR);
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    const count = Math.floor((w * h) / 16000);
+    stars = Array.from({ length: count }, () => ({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: (Math.random() * 1.3 + 0.25) * DPR,
+      tw: Math.random() * Math.PI * 2,
+      spd: 0.003 + Math.random() * 0.008,
+      hue: Math.random() < 0.12 ? 'cyan' : (Math.random() < 0.22 ? 'magenta' : 'white'),
+    }));
+  };
+  resize();
+  window.addEventListener('resize', resize);
+
+  const draw = () => {
+    ctx2d.clearRect(0, 0, w, h);
+    const amp = audioEngine.isPlaying ? 1.0 : 0.55;
+    for (const s of stars) {
+      s.tw += s.spd;
+      const a = (0.25 + 0.75 * (0.5 + 0.5 * Math.sin(s.tw))) * amp;
+      const col = s.hue === 'cyan'    ? `rgba(127, 227, 255, ${a})`
+                : s.hue === 'magenta' ? `rgba(224, 107, 255, ${a})`
+                :                       `rgba(245, 240, 255, ${a})`;
+      ctx2d.fillStyle = col;
+      ctx2d.beginPath();
+      ctx2d.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx2d.fill();
+    }
+    requestAnimationFrame(draw);
+  };
+  draw();
+})();
+
+// Brand logo breathes while playing
+(function logoBreath() {
+  const brand = document.getElementById('brand');
+  if (!brand) return;
+  setInterval(() => brand.classList.toggle('playing', audioEngine.isPlaying), 200);
+})();
+
+// Autoplay-policy resume
+document.addEventListener('click', () => {
+  if (audioEngine.ctx && audioEngine.ctx.state === 'suspended') audioEngine.ctx.resume();
+}, { once: true });
+
+console.log('%cViolet Media — Cosmic Music Maker', 'color: #8A2BE2; font-weight: bold; font-size: 14px');
+console.log('Single-file build · engines: Track · Binaural · Solfeggio · Rain · Thunder · Nature · Master · Export');
+  </script>
+</body>
+</html>
