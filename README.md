@@ -40,28 +40,24 @@ cd Cosmic-Music-Maker
 python -m http.server 3462
 
 # Open in browser
-open http://localhost:3462/cosmic-music-maker.html
+open http://localhost:3462/
 ```
 
-No build step, no npm install, no bundler. Pure Web Audio API + ES modules.
+No build step, no npm install, no bundler. Pure Web Audio API + vanilla JavaScript.
 
-### Two builds in one repo
+### Repo layout
 
-| File | Use when |
-|---|---|
-| **`cosmic-music-maker.html`** | You want one self-contained file. CSS and all JS inlined. Easy to polish, easy to deploy. |
-| **`index.html` + `css/` + `js/`** | You want the modular source — 12 files with clean separation (engines, UI, master chain, WAV encoder). |
-
-Both are functionally identical. Pick the one that matches how you work.
+- **`index.html`** — the canonical, deployable single-file build. CSS and all JavaScript inlined, assets via `assets/`. This is what GitHub Pages serves. Edit this when polishing.
+- **`css/` + `js/`** — the modular source, preserved as reference. 12 clean files separating engines, UI, master chain, and WAV encoder. Useful if you want to fork and rebuild with your own tooling.
 
 ---
 
 ## Nature sample library
 
-The Nature Library engine loads samples from `samples/nature/<category>/<filename>.mp3`. The URL list is hard-coded in:
+The Nature Library engine loads samples from `samples/nature/<category>/<filename>.mp3`. The URL manifest is defined in:
 
-- **Single-file build:** `cosmic-music-maker.html` → search for `NATURE_LIBRARY`
-- **Modular build:** `js/engine/nature-layer.js` → `NATURE_LIBRARY` export
+- **`index.html`** → search for `NATURE_LIBRARY` (canonical)
+- **`js/engine/nature-layer.js`** → `NATURE_LIBRARY` export (modular source reference)
 
 Samples are **not bundled** with this repo. Either:
 
@@ -87,11 +83,12 @@ Web Audio API + `OfflineAudioContext` + `AudioContext.decodeAudioData` are all r
 
 ```
 Cosmic-Music-Maker/
-├── cosmic-music-maker.html       # Single-file build (polished, deploy-ready)
-├── index.html                    # Modular entry (same UI, external css/js)
+├── index.html                    # Canonical deployable single-file build
+├── assets/
+│   └── vm-logo.jpeg              # VM brand logo
 ├── css/
-│   └── style.css
-├── js/
+│   └── style.css                 # Modular source reference
+├── js/                           # Modular source reference (12 files)
 │   ├── main.js                   # Event wiring, transport, export
 │   ├── engine/
 │   │   ├── audio-context.js      # Master chain + offline render
@@ -104,8 +101,6 @@ Cosmic-Music-Maker/
 │   │   └── wav-encoder.js        # AudioBuffer → WAV blob (16 / 24-bit PCM)
 │   └── ui/
 │       └── visualizer.js         # Spectrum bars + LUFS approximation
-├── assets/
-│   └── vm-logo.jpeg              # VM brand logo
 ├── .gitignore
 └── README.md
 ```
